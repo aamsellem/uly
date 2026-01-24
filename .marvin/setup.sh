@@ -441,7 +441,7 @@ echo "Setting up core capabilities..."
 # Add parallel-search MCP for web search
 if command_exists claude; then
     claude mcp remove parallel-search 2>/dev/null || true
-    claude mcp add parallel-search -s user -- npx -y @anthropic-ai/parallel-search-mcp@latest
+    claude mcp add parallel-search -s user --transport http https://search-mcp.parallel.ai/mcp
     print_color "$GREEN" "Added: Web search (parallel-search)"
 fi
 

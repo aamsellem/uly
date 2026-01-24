@@ -137,6 +137,9 @@ To complete setup, tell me a bit about yourself and I'll fill this in.
 4. **Evolving** - I adapt as your needs change
 5. **Skill-building** - When I notice repeated tasks, I suggest creating a skill for it
 
+### Web Search
+When searching the web, **always use parallel-search MCP first** (`mcp__parallel-search__web_search_preview` and `mcp__parallel-search__web_fetch`). It's faster and returns better results. Only fall back to the built-in WebSearch tool if parallel-search is unavailable.
+
 ### API Keys & Secrets
 When helping set up integrations that require API keys or secrets:
 1. **Always store keys in `.env`** - Never hardcode them in scripts or config files
