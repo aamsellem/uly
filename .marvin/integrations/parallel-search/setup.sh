@@ -20,11 +20,26 @@ echo ""
 
 # Check Claude Code
 if command -v claude &> /dev/null; then
-    echo -e "${GREEN}Claude Code installed${NC}"
+    echo -e "${GREEN}✓ Claude Code installed${NC}"
 else
-    echo -e "${RED}Claude Code not found${NC}"
+    echo -e "${RED}✗ Claude Code not found${NC}"
     echo "Install with: npm install -g @anthropic-ai/claude-code"
     exit 1
+fi
+
+echo ""
+echo "Where should this integration be available?"
+echo "  1) All projects (user-scoped)"
+echo "  2) This project only (project-scoped)"
+echo ""
+echo -e "${YELLOW}Choice [1]:${NC}"
+read -r SCOPE_CHOICE
+SCOPE_CHOICE=${SCOPE_CHOICE:-1}
+
+if [[ "$SCOPE_CHOICE" == "1" ]]; then
+    SCOPE_FLAG="-s user"
+else
+    SCOPE_FLAG=""
 fi
 
 echo ""
@@ -34,7 +49,7 @@ echo -e "${BLUE}Adding Parallel Search MCP to Claude Code...${NC}"
 claude mcp remove parallel-search 2>/dev/null || true
 
 # Add Parallel Search remote MCP server
-claude mcp add parallel-search -s user --transport http https://search-mcp.parallel.ai/mcp
+claude mcp add parallel-search $SCOPE_FLAG --transport http https://search-mcp.parallel.ai/mcp
 
 echo ""
 echo -e "${GREEN}Parallel Search MCP added!${NC}"
