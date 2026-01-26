@@ -1,0 +1,12 @@
+# Virtual environment
+venv/
+
+# Environment variables (contains secrets)
+.env
+
+# Database
+telegram.db
+
+# Python
+__pycache__/
+*.pyc
