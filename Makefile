@@ -1,7 +1,9 @@
 # ULY - Makefile
 # Usage: make <commande>
 
-.PHONY: help tunnel-start tunnel-stop tunnel-status tunnel-setup tunnel-logs clean
+.PHONY: help start onboarding tunnel-start tunnel-stop tunnel-status tunnel-setup tunnel-logs tunnel-run \
+        setup-google setup-atlassian setup-notion setup-slack setup-ms365 setup-telegram setup-parallel-search \
+        clean sync install-deps
 
 # Couleurs
 BLUE := \033[0;34m
@@ -9,12 +11,28 @@ GREEN := \033[0;32m
 YELLOW := \033[1;33m
 NC := \033[0m
 
+# Défaut
+.DEFAULT_GOAL := help
+
 help: ## Afficher cette aide
 	@echo ""
-	@echo "$(BLUE)ULY - Commandes disponibles$(NC)"
+	@echo "$(BLUE)╔════════════════════════════════════════╗$(NC)"
+	@echo "$(BLUE)║$(NC)     $(GREEN)ULY - Commandes disponibles$(NC)       $(BLUE)║$(NC)"
+	@echo "$(BLUE)╚════════════════════════════════════════╝$(NC)"
 	@echo ""
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(NC) %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-25s$(NC) %s\n", $$1, $$2}'
 	@echo ""
+
+# ===========================================
+# DÉMARRAGE
+# ===========================================
+
+start: ## Lancer ULY avec /uly
+	@claude --dangerously-skip-permissions -p "/uly"
+
+onboarding: ## Lancer l'onboarding (première configuration)
+	@echo "$(BLUE)Lancement de l'onboarding ULY...$(NC)"
+	@claude --dangerously-skip-permissions -p "Lis .uly/onboarding.md et guide-moi dans la configuration"
 
 # ===========================================
 # TUNNEL
@@ -50,7 +68,7 @@ tunnel-run: ## Lancer le tunnel en mode interactif (avec logs)
 # INTÉGRATIONS
 # ===========================================
 
-setup-google: ## Configurer Google Workspace
+setup-google: ## Configurer Google Workspace (Gmail, Calendar, Drive)
 	@./.uly/integrations/google-workspace/setup.sh
 
 setup-atlassian: ## Configurer Atlassian (Jira, Confluence)
@@ -61,6 +79,30 @@ setup-notion: ## Configurer Notion
 
 setup-slack: ## Configurer Slack
 	@./.uly/integrations/slack/setup.sh
+
+setup-ms365: ## Configurer Microsoft 365 (Outlook, Teams, OneDrive)
+	@./.uly/integrations/ms365/setup.sh
+
+setup-telegram: ## Configurer Telegram
+	@./.uly/integrations/telegram/setup.sh
+
+setup-parallel-search: ## Configurer Parallel Search (recherche web)
+	@./.uly/integrations/parallel-search/setup.sh
+
+setup-all: ## Configurer toutes les intégrations (interactif)
+	@echo "$(BLUE)Configuration des intégrations ULY$(NC)"
+	@echo ""
+	@echo "Intégrations disponibles :"
+	@echo "  1) Google Workspace"
+	@echo "  2) Atlassian"
+	@echo "  3) Notion"
+	@echo "  4) Slack"
+	@echo "  5) Microsoft 365"
+	@echo "  6) Telegram"
+	@echo "  7) Parallel Search"
+	@echo "  8) Cloudflare Tunnel"
+	@echo ""
+	@echo "Lancez 'make setup-<nom>' pour configurer une intégration"
 
 # ===========================================
 # MAINTENANCE
@@ -78,6 +120,7 @@ clean: ## Nettoyer les fichiers temporaires
 sync: ## Synchroniser avec le template ULY officiel
 	@if [ -f .uly-source ]; then \
 		echo "Synchronisation depuis $$(cat .uly-source)..."; \
+		claude --dangerously-skip-permissions -p "/sync"; \
 	else \
 		echo "$(YELLOW)Pas de source configurée$(NC)"; \
 	fi
@@ -92,3 +135,21 @@ install-deps: ## Installer les dépendances du tunnel
 		. venv/bin/activate && \
 		pip install -r requirements.txt
 	@echo "$(GREEN)✓ Dépendances installées$(NC)"
+
+status: ## Afficher le statut général d'ULY
+	@echo ""
+	@echo "$(BLUE)Statut ULY$(NC)"
+	@echo ""
+	@printf "  Tunnel:        "
+	@if lsof -i :8787 -sTCP:LISTEN >/dev/null 2>&1; then \
+		echo "$(GREEN)actif$(NC)"; \
+	else \
+		echo "$(YELLOW)inactif$(NC)"; \
+	fi
+	@printf "  Configuration: "
+	@if grep -q "NON CONFIGURÉ" CLAUDE.md 2>/dev/null; then \
+		echo "$(YELLOW)incomplète$(NC) (lancez 'make onboarding')"; \
+	else \
+		echo "$(GREEN)OK$(NC)"; \
+	fi
+	@echo ""
