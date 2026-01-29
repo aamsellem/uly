@@ -5,54 +5,45 @@ description: Lister les tâches en attente de retour utilisateur (compatible N8N
 # /pending - Tâches en Attente de Retour
 
 Génère un message de relance pour les tâches où ULY attend un retour de l'utilisateur.
-Conçu pour être utilisé dans un workflow N8N ou manuellement.
 
 ## Instructions
 
-### 1. Lire les Attentes
-Lire `state/current.md` et chercher la section `## En Attente de Retour`.
+### 1. Lire le Fichier
+Lire `state/current.md` et trouver la section `## En Attente de Retour`.
 
-Cette section contient les tâches au format :
-```markdown
-## En Attente de Retour
+### 2. Compter les Tâches
+Compter UNIQUEMENT les lignes qui commencent par `- [ ]` (case non cochée).
+Les commentaires HTML `<!-- -->` ne comptent PAS comme des tâches.
 
-- [ ] {description de la tâche} — depuis le {date}
-- [ ] {autre tâche} — depuis le {date}
-```
+### 3. Répondre
 
-### 2. Analyser et Répondre
+**RÈGLE ABSOLUE : Si zéro tâche `- [ ]` → tu réponds avec RIEN. Pas un mot. Pas d'explication. RIEN.**
 
-**Si la section est vide ou n'existe pas :**
-- Ne rien répondre (sortie vide)
-- Aucun texte, aucun message
-
-**Si des tâches sont en attente :**
-- Générer un message de relance naturel
-- Adapter le ton à la personnalité configurée dans CLAUDE.md
-- Format suggéré :
-
+**Si au moins une tâche `- [ ]` existe :**
+Générer un message de relance avec ta personnalité. Exemple :
 ```
 J'attends toujours ton retour sur :
-• {tâche 1}
-• {tâche 2}
+• Validation du design
+• Retour sur l'API
 
-Tu peux me faire un point quand tu as un moment ?
+Tu me fais signe ?
 ```
 
-### 3. Format de Sortie (N8N)
+## Exemples
 
-Pour une intégration N8N optimale :
-- Texte brut uniquement, pas de markdown complexe
-- Une seule réponse, pas de questions de suivi
-- Si rien en attente : sortie strictement vide (pas même un espace)
-
-## Gestion des Attentes
-
-Pour ajouter une tâche en attente, utiliser `/update` ou `/end` et ajouter dans `state/current.md` :
+**Exemple 1 - Section vide :**
 ```markdown
 ## En Attente de Retour
 
-- [ ] Retour sur la proposition de refacto API — depuis le 2025-01-15
+<!-- Tâches où ULY attend un retour -->
 ```
+→ Réponse : (rien, vide, aucun caractère)
 
-Quand l'utilisateur donne son retour, cocher ou supprimer la ligne.
+**Exemple 2 - Avec tâches :**
+```markdown
+## En Attente de Retour
+
+- [ ] Validation du design — depuis le 2025-01-20
+- [ ] Choix techno backend — depuis le 2025-01-22
+```
+→ Réponse : Message de relance avec personnalité
