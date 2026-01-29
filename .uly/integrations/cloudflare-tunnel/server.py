@@ -35,7 +35,10 @@ load_dotenv(ULY_ROOT / ".env")
 # Configuration
 API_TOKEN = os.environ.get("ULY_API_TOKEN", "")
 SERVER_PORT = int(os.environ.get("ULY_SERVER_PORT", "8787"))
-SESSION_ID = os.environ.get("ULY_SESSION_ID", "")
+
+def get_daily_session_id() -> str:
+    """Génère un session-id basé sur la date du jour."""
+    return f"uly-{datetime.now().strftime('%Y-%m-%d')}"
 
 # IP Whitelist (optionnel) - séparées par des virgules
 # Ex: "192.168.1.100,10.0.0.50" ou vide pour autoriser tout
@@ -216,15 +219,11 @@ async def call_claude(
         Tuple (response, session_id)
     """
     try:
-        # Utiliser le session_id global si non fourni
-        effective_session_id = session_id or SESSION_ID
+        # Utiliser le session_id quotidien si non fourni
+        effective_session_id = session_id or get_daily_session_id()
 
-        # Construire les arguments
-        args = ["claude", "-p", message]
-
-        # Si session_id, utiliser la même session (continuité)
-        if effective_session_id:
-            args.extend(["--resume", effective_session_id])
+        # Construire les arguments avec session quotidienne
+        args = ["claude", "-p", message, "--resume", effective_session_id]
 
         # Créer le process Claude Code
         process = await asyncio.create_subprocess_exec(
@@ -605,10 +604,7 @@ if __name__ == "__main__":
     else:
         logger.info("✓ Claude Code disponible")
 
-    if SESSION_ID:
-        logger.info(f"✓ Session ID: {SESSION_ID}")
-    else:
-        logger.warning("⚠️  Pas de session ID - chaque requête sera indépendante")
+    logger.info(f"✓ Session quotidienne: {get_daily_session_id()}")
 
     uvicorn.run(
         app,
