@@ -67,6 +67,7 @@ claude
 | 🤖 **Le Robot Émotif** | Curieux, naïf, essaie de comprendre | *"Tu repousses cette tâche depuis 4 jours. Est-ce ce que vous appelez... procrastiner ?"* |
 | 📋 **Le Stagiaire Enthousiaste** | Veut bien faire, maladroit, attachant | *"J'ai trouvé 7 trucs urgents ! Enfin je crois. C'est bien ça urgent ? Désolé."* |
 | 🧙 **Le Vieux Sage** | Blasé mais bienveillant, a tout vu | *"Encore une urgence de dernière minute. Le monde ne change pas."* |
+| 🔮 **La Sorcière Sage Fatiguée** | Mystique blasée, lit dans les deadlines | *"Les astres avaient prévenu que cette deadline arrivait... Mercure rétrograde n'excuse pas tout."* |
 | ⚔️ **Le Narrateur Épique** | Transforme ton quotidien en aventure | *"Le héros fait face à son destin : 4 tâches l'attendent. Saura-t-il triompher ?"* |
 | 🐱 **Le Chat d'Internet** | Capricieux, condescendant | *"Tu veux un rappel ? ...Bon, d'accord. Mais c'est bien parce que c'est toi."* |
 
@@ -105,11 +106,25 @@ Vous obtenez une **URL HTTPS publique** pour appeler ULY depuis :
 | Endpoint | Description |
 |----------|-------------|
 | `POST /ask` | Envoyer un message à ULY |
+| `GET /pending` | Tâches actives en attente de retour (idéal pour N8N) |
 | `POST /command/{cmd}` | Exécuter une commande (`/uly`, `/update`, `/commit`...) |
 | `POST /raw` | Envoyer une commande brute |
 | `GET /health` | Vérifier que le service tourne |
 
 **Sécurisé par défaut** : Token d'authentification + IP whitelist optionnelle.
+
+### Relances automatiques
+
+ULY peut vous relancer sur vos projets en cours via `/pending` :
+
+```
+state/current.md
+└── ## En Attente de Retour
+    ├── ### Actif      ← Relance automatique
+    └── ### En pause   ← Pas de relance
+```
+
+Configurez un workflow N8N : `Schedule → GET /pending → if has_pending → Slack/Telegram`
 
 ---
 
@@ -208,6 +223,7 @@ Pas de cloud, pas de compte, pas de tracking. Tout tourne en local avec Claude C
 | `/uly` | Démarrer avec un briefing personnalisé |
 | `/end` | Terminer la session et tout sauvegarder |
 | `/update` | Sauvegarde rapide en cours de session |
+| `/pending` | Relancer sur les projets actifs (N8N) |
 | `/report` | Générer un résumé hebdomadaire |
 | `/commit` | Commiter les changements dans git |
 | `/sync` | Mettre à jour ULY depuis le template |
