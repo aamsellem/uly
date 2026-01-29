@@ -230,7 +230,8 @@ async def call_claude(
         effective_session_id = session_id or get_daily_session_id()
 
         # Construire les arguments avec session quotidienne
-        args = ["claude", "-p", message, "--resume", effective_session_id]
+        # --session-id crée ou continue une session avec cet UUID
+        args = ["claude", "-p", message, "--session-id", effective_session_id]
 
         # Créer le process Claude Code
         process = await asyncio.create_subprocess_exec(
