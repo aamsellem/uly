@@ -216,7 +216,7 @@ async def call_claude(
     """
     try:
         # Construire les arguments
-        args = ["claude", "-p", message, "--no-spinner"]
+        args = ["claude", "-p", message]
 
         # Si session_id fourni, reprendre la conversation
         if session_id:
