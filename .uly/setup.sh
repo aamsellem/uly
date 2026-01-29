@@ -436,7 +436,7 @@ uly() {
     echo -e '\e[1;33m╚██████╔╝  ███████╗    ██║   \e[0m'
     echo -e '\e[1;33m ╚═════╝   ╚══════╝    ╚═╝   \e[0m'
     echo ''
-    echo -e '\e[0;36m  Utilitaire Léger pour You  \e[0m'
+    echo -e '\e[0;36m  Ultimate Lazy You  \e[0m'
     echo ''
     cd \"$WORKSPACE_DIR\" && claude
 }

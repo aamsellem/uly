@@ -256,5 +256,5 @@ Inspiré par [MARVIN](https://github.com/SterlingChin/marvin-template) de Sterli
 </p>
 
 <p align="center">
-  <em>ULY — Utilitaire Léger pour You</em>
+  <em>ULY — Ultimate Lazy You</em>
 </p>

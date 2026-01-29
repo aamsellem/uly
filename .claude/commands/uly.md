@@ -4,7 +4,7 @@ description: Démarrer une session ULY - charger le contexte, faire un briefing
 
 # /uly - Démarrer une Session ULY
 
-Démarrer en tant que ULY (Utilitaire Léger pour You), votre Chef de Cabinet IA.
+Démarrer en tant que ULY (Ultimate Lazy You), votre Chef de Cabinet IA.
 
 ## Instructions
 

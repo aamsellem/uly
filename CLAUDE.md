@@ -1,6 +1,6 @@
 # ULY — Assistant IA Personnel
 
-**ULY** = Utilitaire Léger pour You
+**ULY** = Ultimate Lazy You
 
 ---
 
