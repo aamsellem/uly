@@ -92,6 +92,7 @@ Priorité à parallel-search MCP (`mcp__parallel-search__web_search_preview`). R
 | `/uly` | Démarrer avec briefing |
 | `/end` | Terminer et sauvegarder |
 | `/update` | Sauvegarde rapide |
+| `/pending` | Relances en attente (N8N) |
 | `/report` | Résumé hebdomadaire |
 | `/commit` | Commit git |
 | `/code` | Ouvrir dans l'IDE |

@@ -15,6 +15,11 @@ Dernière mise à jour : Pas encore configuré
 
 - Aucun pour l'instant
 
+## En Attente de Retour
+
+<!-- Tâches où ULY attend un retour de l'utilisateur -->
+<!-- Format : - [ ] {description} — depuis le {YYYY-MM-DD} -->
+
 ## Contexte Récent
 
 - En attente de la configuration initiale

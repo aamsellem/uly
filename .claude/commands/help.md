@@ -20,6 +20,7 @@ Afficher cette référence :
 | /uly      | Démarrer une session avec un briefing    |
 | /end      | Terminer la session et tout sauvegarder  |
 | /update   | Point de contrôle rapide (sauvegarder)   |
+| /pending  | Relances en attente de retour (N8N)      |
 | /report   | Générer un résumé hebdomadaire du travail|
 | /commit   | Réviser et commiter les changements git  |
 | /code     | Ouvrir ULY dans votre IDE                |

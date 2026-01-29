@@ -293,7 +293,10 @@ async def root():
         "description": "API pour interagir avec ULY (Claude Code local)",
         "endpoints": {
             "POST /ask": "Envoyer un message à ULY",
-            "GET /health": "Vérifier le statut du service"
+            "GET /health": "Vérifier le statut du service",
+            "GET /pending": "Tâches en attente de retour (N8N)",
+            "POST /command/{cmd}": "Exécuter une commande slash",
+            "POST /raw": "Exécuter une commande brute"
         },
         "documentation": "/docs"
     }
@@ -478,6 +481,59 @@ async def raw_command(
         "session_id": session_id,
         "duration_ms": duration_ms
     }
+
+
+class PendingResponse(BaseModel):
+    """Réponse pour les tâches en attente."""
+    has_pending: bool
+    message: str  # Vide si rien en attente
+
+
+@app.get("/pending", response_model=PendingResponse)
+async def get_pending(
+    request: Request,
+    authorization: str = Header(None),
+    timeout: int = 120
+):
+    """
+    Récupère les tâches en attente de retour utilisateur.
+
+    Passe par Claude Code pour avoir la personnalité configurée.
+
+    Endpoint optimisé pour N8N :
+    - Retourne has_pending=false et message="" si rien en attente
+    - Retourne has_pending=true et un message de relance avec la personnalité
+
+    Idéal pour déclencher des notifications conditionnelles.
+    """
+
+    # Vérifier l'IP whitelist
+    if not check_ip_whitelist(request):
+        raise HTTPException(
+            status_code=403,
+            detail=f"IP non autorisée: {get_client_ip(request)}"
+        )
+
+    verify_token(authorization)
+
+    client_ip = get_client_ip(request)
+    if not check_rate_limit(client_ip):
+        raise HTTPException(
+            status_code=429,
+            detail="Rate limit dépassé. Maximum 100 requêtes par minute."
+        )
+
+    logger.info(f"Vérification pending de {client_ip}")
+
+    # Appeler Claude avec /pending pour avoir la personnalité
+    response, _ = await call_claude("/pending", timeout=timeout)
+
+    # Si la réponse est vide ou quasi-vide, rien en attente
+    clean_response = response.strip()
+    if not clean_response or len(clean_response) < 5:
+        return PendingResponse(has_pending=False, message="")
+
+    return PendingResponse(has_pending=True, message=clean_response)
 
 
 # ========================================
