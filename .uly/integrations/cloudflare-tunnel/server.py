@@ -489,6 +489,32 @@ class PendingResponse(BaseModel):
     message: str  # Vide si rien en attente
 
 
+def check_pending_tasks() -> bool:
+    """
+    Vérifie s'il y a des tâches en attente dans state/current.md.
+    Retourne True si au moins une ligne "- [ ]" existe dans la section.
+    """
+    state_file = ULY_ROOT / "state" / "current.md"
+
+    if not state_file.exists():
+        return False
+
+    content = state_file.read_text()
+
+    # Chercher la section "En Attente de Retour"
+    in_section = False
+    for line in content.split("\n"):
+        if "## En Attente de Retour" in line:
+            in_section = True
+            continue
+        if in_section and line.strip().startswith("## "):
+            break  # Nouvelle section, on arrête
+        if in_section and line.strip().startswith("- [ ]"):
+            return True  # Au moins une tâche trouvée
+
+    return False
+
+
 @app.get("/pending", response_model=PendingResponse)
 async def get_pending(
     request: Request,
@@ -498,7 +524,7 @@ async def get_pending(
     """
     Récupère les tâches en attente de retour utilisateur.
 
-    Passe par Claude Code pour avoir la personnalité configurée.
+    Vérifie d'abord s'il y a des tâches, puis appelle Claude pour la personnalité.
 
     Endpoint optimisé pour N8N :
     - Retourne has_pending=false et message="" si rien en attente
@@ -525,15 +551,16 @@ async def get_pending(
 
     logger.info(f"Vérification pending de {client_ip}")
 
-    # Appeler Claude avec /pending pour avoir la personnalité
-    response, _ = await call_claude("/pending", timeout=timeout)
-
-    # Si la réponse est vide ou quasi-vide, rien en attente
-    clean_response = response.strip()
-    if not clean_response or len(clean_response) < 5:
+    # Vérifier d'abord s'il y a des tâches (sans appeler Claude)
+    if not check_pending_tasks():
+        logger.info("Aucune tâche en attente")
         return PendingResponse(has_pending=False, message="")
 
-    return PendingResponse(has_pending=True, message=clean_response)
+    # Il y a des tâches : appeler Claude pour avoir le message avec personnalité
+    logger.info("Tâches en attente détectées, appel de Claude")
+    response, _ = await call_claude("/pending", timeout=timeout)
+
+    return PendingResponse(has_pending=True, message=response.strip())
 
 
 # ========================================
