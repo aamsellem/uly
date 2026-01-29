@@ -1,6 +1,6 @@
 #!/bin/bash
 # Slack MCP Setup Script
-# Connect MARVIN to your Slack workspace
+# Connect ULY to your Slack workspace
 
 set -e
 
@@ -61,7 +61,7 @@ echo "You'll need a Slack User Token (xoxp-...) with the right permissions."
 echo ""
 echo "1. Go to: https://api.slack.com/apps"
 echo "2. Click 'Create New App' → 'From scratch'"
-echo "3. Name it something like 'MARVIN' and select your workspace"
+echo "3. Name it something like 'ULY' and select your workspace"
 echo ""
 echo -e "${YELLOW}Press Enter when you've created the app...${NC}"
 read -r

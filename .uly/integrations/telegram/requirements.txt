@@ -1,4 +1,4 @@
-# MARVIN Telegram Bot Dependencies
+# ULY Telegram Bot Dependencies
 
 # Telegram
 python-telegram-bot>=21.0

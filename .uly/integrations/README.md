@@ -264,4 +264,4 @@ Vous voulez en construire une ? Choisissez dans la liste ou ajoutez la vôtre !
 
 ---
 
-*Ce répertoire d'intégrations fait partie de [ULY](https://github.com/SterlingChin/marvin-template), le modèle de Chef de Cabinet IA.*
+*Ce répertoire d'intégrations fait partie de [ULY](https://github.com/aamsellem/uly), l'assistant IA personnel. Inspiré par [MARVIN](https://github.com/SterlingChin/marvin-template).*

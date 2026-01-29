@@ -1,6 +1,6 @@
 #!/bin/bash
 # Telegram Bot Setup Script
-# Connect MARVIN to Telegram for mobile AI assistant access
+# Connect ULY to Telegram for mobile AI assistant access
 
 set -e
 
@@ -13,11 +13,11 @@ NC='\033[0m' # No Color
 
 # Get the directory where this script lives
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MARVIN_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+ULY_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 
 echo ""
 echo -e "${BLUE}========================================${NC}"
-echo -e "${BLUE}  Telegram Bot Setup for MARVIN${NC}"
+echo -e "${BLUE}  Telegram Bot Setup for ULY${NC}"
 echo -e "${BLUE}========================================${NC}"
 echo ""
 
@@ -45,7 +45,7 @@ if [ -n "$ANTHROPIC_API_KEY" ]; then
     echo -e "${GREEN}✓ ANTHROPIC_API_KEY found in environment${NC}"
 else
     # Check .env file
-    if [ -f "$MARVIN_ROOT/.env" ] && grep -q "ANTHROPIC_API_KEY" "$MARVIN_ROOT/.env"; then
+    if [ -f "$ULY_ROOT/.env" ] && grep -q "ANTHROPIC_API_KEY" "$ULY_ROOT/.env"; then
         echo -e "${GREEN}✓ ANTHROPIC_API_KEY found in .env${NC}"
     else
         echo -e "${YELLOW}! ANTHROPIC_API_KEY not found${NC}"
@@ -63,8 +63,8 @@ echo "You need a Telegram bot token from @BotFather."
 echo ""
 echo "1. Open Telegram and search for @BotFather"
 echo "2. Send: /newbot"
-echo "3. Choose a name (e.g., 'My MARVIN')"
-echo "4. Choose a username (must end in 'bot', e.g., 'my_marvin_bot')"
+echo "3. Choose a name (e.g., 'My ULY')"
+echo "4. Choose a username (must end in 'bot', e.g., 'my_uly_bot')"
 echo "5. BotFather will give you a token like:"
 echo "   123456789:ABCdefGHIjklMNOpqrsTUVwxyz"
 echo ""
@@ -156,7 +156,7 @@ echo -e "${GREEN}✓ Configuration saved to .env${NC}"
 # Create run script
 cat > "$SCRIPT_DIR/run.sh" << 'EOF'
 #!/bin/bash
-# Start the MARVIN Telegram bot
+# Start the ULY Telegram bot
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -184,7 +184,7 @@ echo -e "${BLUE}========================================${NC}"
 echo ""
 echo "To start your bot:"
 echo ""
-echo -e "  ${YELLOW}./.marvin/integrations/telegram/run.sh${NC}"
+echo -e "  ${YELLOW}./.uly/integrations/telegram/run.sh${NC}"
 echo ""
 echo "Then open Telegram and message your bot!"
 echo ""

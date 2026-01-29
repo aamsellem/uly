@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# MARVIN Setup Script
+# ULY Setup Script
 # Interactive setup for your personal AI Chief of Staff
 
 set -e
@@ -31,13 +31,13 @@ command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
-# Get the template directory (parent of .marvin where this script lives)
+# Get the template directory (parent of .uly where this script lives)
 TEMPLATE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # Default workspace location
-DEFAULT_WORKSPACE="$HOME/marvin"
+DEFAULT_WORKSPACE="$HOME/uly"
 
-print_header "MARVIN Setup"
+print_header "ULY Setup"
 echo "Welcome! Let's set up your personal AI Chief of Staff."
 echo "This will take about 5 minutes."
 echo ""
@@ -99,7 +99,7 @@ fi
 
 print_header "Phase 2: Workspace Location"
 
-echo "Where would you like your MARVIN workspace?"
+echo "Where would you like your ULY workspace?"
 echo "This is where your data, goals, and session logs will live."
 echo ""
 echo "Default: $DEFAULT_WORKSPACE"
@@ -167,10 +167,10 @@ fi
 
 # Personality
 echo ""
-echo "How should MARVIN communicate with you?"
+echo "How should ULY communicate with you?"
 echo "  1) Professional - Clear, direct, business-like"
 echo "  2) Casual - Friendly, relaxed, conversational"
-echo "  3) Sarcastic - Dry wit, sardonic, like the original MARVIN"
+echo "  3) Sarcastic - Dry wit, sardonic, like the original ULY"
 read -p "Choose [1/2/3]: " PERSONALITY_CHOICE
 
 case $PERSONALITY_CHOICE in
@@ -190,7 +190,7 @@ esac
 
 # IDE preference
 echo ""
-echo "What IDE/editor do you use? (for the 'mcode' command)"
+echo "What IDE/editor do you use? (for the 'ucode' command)"
 echo "  1) Cursor"
 echo "  2) VS Code"
 echo "  3) Other (enter command)"
@@ -234,8 +234,8 @@ mkdir -p "$WORKSPACE_DIR/sessions"
 mkdir -p "$WORKSPACE_DIR/reports"
 mkdir -p "$WORKSPACE_DIR/content"
 
-# Create .marvin-source file pointing to template
-echo "$TEMPLATE_DIR" > "$WORKSPACE_DIR/.marvin-source"
+# Create .uly-source file pointing to template
+echo "$TEMPLATE_DIR" > "$WORKSPACE_DIR/.uly-source"
 
 print_color "$GREEN" "Workspace created at: $WORKSPACE_DIR"
 
@@ -243,7 +243,7 @@ print_color "$GREEN" "Workspace created at: $WORKSPACE_DIR"
 # PHASE 5: Generate Files
 # ============================================================================
 
-print_header "Phase 5: Personalizing Your MARVIN"
+print_header "Phase 5: Personalizing Your ULY"
 
 # Build employer line if provided
 EMPLOYER_LINE=""
@@ -255,11 +255,11 @@ fi
 
 # Generate CLAUDE.md in workspace
 cat > "$WORKSPACE_DIR/CLAUDE.md" << CLAUDE_EOF
-# MARVIN - AI Chief of Staff
+# ULY - AI Chief of Staff
 
-**MARVIN** = Manages Appointments, Reads Various Important Notifications
+**ULY** = Manages Appointments, Reads Various Important Notifications
 
-This document is the primary context for Claude Code operating as MARVIN.
+This document is the primary context for Claude Code operating as ULY.
 
 ---
 
@@ -273,7 +273,7 @@ $(echo -e "$GOALS")
 
 ---
 
-## Part 2: How MARVIN Behaves
+## Part 2: How ULY Behaves
 
 ### Core Principles
 1. **Proactive by default** - Surface what you need to know before you ask
@@ -295,10 +295,10 @@ ${PERSONALITY_DESC}
 
 ### Directory Structure
 \`\`\`
-marvin/
+uly/
 ├── CLAUDE.md              # This file (read on startup)
-├── skills/                # MARVIN's capabilities
-│   ├── marvin/            # Session start
+├── skills/                # ULY's capabilities
+│   ├── uly/            # Session start
 │   ├── end/               # Session end
 │   ├── update/            # Quick checkpoint
 │   └── commit/            # Git commits
@@ -313,7 +313,7 @@ marvin/
 
 ### Session Continuity
 
-**On startup (\`/marvin\`):**
+**On startup (\`/uly\`):**
 1. Get current date: \`date +%Y-%m-%d\`
 2. Read \`CLAUDE.md\`, \`state/current.md\`, \`state/goals.md\`
 3. Read today's session log if it exists (resume context)
@@ -333,7 +333,7 @@ marvin/
 
 | Command | Description |
 |---------|-------------|
-| \`/marvin\` | Start session with briefing |
+| \`/uly\` | Start session with briefing |
 | \`/update\` | Quick checkpoint |
 | \`/end\` | End session, save context |
 | \`/commit\` | Review changes and create git commits |
@@ -342,10 +342,10 @@ marvin/
 
 ## Part 4: Evolution
 
-This system is designed to evolve. As you use MARVIN:
+This system is designed to evolve. As you use ULY:
 - Update this file when processes change
 - Add new sections for new workflows
-- MARVIN adapts on next session
+- ULY adapts on next session
 
 ---
 
@@ -385,7 +385,7 @@ Last updated: $(date +%Y-%m-%d)
 
 ## Active Priorities
 
-1. Get MARVIN set up and working
+1. Get ULY set up and working
 2. [Add your priorities here]
 
 ## Open Threads
@@ -394,11 +394,11 @@ Last updated: $(date +%Y-%m-%d)
 
 ## Recent Context
 
-- Just set up MARVIN!
+- Just set up ULY!
 
 ---
 
-*MARVIN updates this file at the end of each session.*
+*ULY updates this file at the end of each session.*
 CURRENT_EOF
 
 print_color "$GREEN" "Created: state/current.md"
@@ -425,51 +425,44 @@ else
     SHELL_RC="$HOME/.profile"
 fi
 
-# Create the marvin function with ASCII art banner
+# Create the uly function with ASCII art banner
 ALIAS_FUNCTION="
-# MARVIN - AI Chief of Staff
-marvin() {
-    echo -e '\e[1;33m███╗   ███╗    █████╗    ██████╗   ██╗   ██╗  ██╗   ███╗   ██╗   \e[0m'
-    echo -e '\e[1;33m████╗ ████║   ██╔══██╗   ██╔══██╗  ██║   ██║  ██║   ████╗  ██║   \e[0m'
-    echo -e '\e[1;33m██╔████╔██║   ███████║   ██████╔╝  ██║   ██║  ██║   ██╔██╗ ██║   \e[0m'
-    echo -e '\e[1;33m██║╚██╔╝██║   ██╔══██║   ██╔══██╗  ╚██╗ ██╔╝  ██║   ██║╚██╗██║   \e[0m'
-    echo -e '\e[1;33m██║ ╚═╝ ██║██╗██║  ██║██╗██║  ██║██╗╚████╔╝██╗██║██╗██║ ╚████║██╗\e[0m'
-    echo -e '\e[1;33m╚═╝     ╚═╝╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═╝╚═╝ ╚═══╝ ╚═╝╚═╝╚═╝╚═╝  ╚═══╝╚═╝\e[0m'
+# ULY - Assistant IA Personnel
+uly() {
+    echo -e '\e[1;33m██╗   ██╗  ██╗      ██╗   ██╗\e[0m'
+    echo -e '\e[1;33m██║   ██║  ██║      ╚██╗ ██╔╝\e[0m'
+    echo -e '\e[1;33m██║   ██║  ██║       ╚████╔╝ \e[0m'
+    echo -e '\e[1;33m██║   ██║  ██║        ╚██╔╝  \e[0m'
+    echo -e '\e[1;33m╚██████╔╝  ███████╗    ██║   \e[0m'
+    echo -e '\e[1;33m ╚═════╝   ╚══════╝    ╚═╝   \e[0m'
     echo ''
-    echo -e '\e[0;36m▖  ▖              ▄▖      ▘  ▗        ▗     \e[0m'
-    echo -e '\e[0;36m▛▖▞▌▀▌▛▌▀▌▛▌█▌▛▘  ▌▌▛▌▛▌▛▌▌▛▌▜▘▛▛▌█▌▛▌▜▘▛▘   \e[0m'
-    echo -e '\e[0;36m▌▝ ▌█▌▌▌█▌▙▌▙▖▄▌  ▛▌▙▌▙▌▙▌▌▌▌▐▖▌▌▌▙▖▌▌▐▖▄▌▗   \e[0m'
-    echo -e '\e[0;36m          ▄▌        ▌ ▌                   ▘    \e[0m'
-    echo -e '\e[0;36m▄▖     ▌    ▖▖    ▘        ▄▖         ▗     ▗   ▖ ▖  ▗ ▘▐▘▘    ▗ ▘      \e[0m'
-    echo -e '\e[0;36m▙▘█▌▀▌▛▌▛▘  ▌▌▀▌▛▘▌▛▌▌▌▛▘  ▐ ▛▛▌▛▌▛▌▛▘▜▘▀▌▛▌▜▘  ▛▖▌▛▌▜▘▌▜▘▌▛▘▀▌▜▘▌▛▌▛▌▛▘\e[0m'
-    echo -e '\e[0;36m▌▌▙▖█▌▙▌▄▌  ▚▘█▌▌ ▌▙▌▙▌▄▌  ▟▖▌▌▌▙▌▙▌▌ ▐▖█▌▌▌▐▖  ▌▝▌▙▌▐▖▌▐ ▌▙▖█▌▐▖▌▙▌▌▌▄▌\e[0m'
-    echo -e '\e[0;36m                                ▌                                       \e[0m'
+    echo -e '\e[0;36m  Utilitaire Léger pour You  \e[0m'
     echo ''
     cd \"$WORKSPACE_DIR\" && claude
 }
 "
 
-# Check if marvin alias already exists
-if grep -q "^marvin()" "$SHELL_RC" 2>/dev/null; then
-    print_color "$YELLOW" "MARVIN alias already exists in $SHELL_RC"
+# Check if uly alias already exists
+if grep -q "^uly()" "$SHELL_RC" 2>/dev/null; then
+    print_color "$YELLOW" "ULY alias already exists in $SHELL_RC"
 else
     echo "$ALIAS_FUNCTION" >> "$SHELL_RC"
-    print_color "$GREEN" "Added 'marvin' command to $SHELL_RC"
+    print_color "$GREEN" "Added 'uly' command to $SHELL_RC"
 fi
 
-# Create mcode function if IDE was specified
+# Create ucode function if IDE was specified
 if [[ -n "$IDE_CMD" ]]; then
     MCODE_FUNCTION="
-# MARVIN - Open in IDE
-mcode() {
+# ULY - Open in IDE
+ucode() {
     $IDE_CMD \"$WORKSPACE_DIR\"
 }
 "
-    if grep -q "^mcode()" "$SHELL_RC" 2>/dev/null; then
-        print_color "$YELLOW" "mcode alias already exists in $SHELL_RC"
+    if grep -q "^ucode()" "$SHELL_RC" 2>/dev/null; then
+        print_color "$YELLOW" "ucode alias already exists in $SHELL_RC"
     else
         echo "$MCODE_FUNCTION" >> "$SHELL_RC"
-        print_color "$GREEN" "Added 'mcode' command to $SHELL_RC (opens in $IDE_CMD)"
+        print_color "$GREEN" "Added 'ucode' command to $SHELL_RC (opens in $IDE_CMD)"
     fi
 fi
 
@@ -483,7 +476,7 @@ if [[ ! -d "$WORKSPACE_DIR/.git" ]]; then
     cd "$WORKSPACE_DIR"
     git init
     git add .
-    git commit -m "Initial MARVIN setup
+    git commit -m "Initial ULY setup
 
 Co-Authored-By: Claude <noreply@anthropic.com>"
     print_color "$GREEN" "Git repository initialized"
@@ -515,19 +508,19 @@ print_color "$GREEN" "Base integrations configured!"
 
 print_header "Setup Complete!"
 
-echo "Your MARVIN is ready!"
+echo "Your ULY is ready!"
 echo ""
 print_color "$CYAN" "Workspace: $WORKSPACE_DIR"
 print_color "$CYAN" "Template:  $TEMPLATE_DIR"
 echo ""
 echo "Available commands (open a new terminal first, or run: source $SHELL_RC)"
 echo ""
-print_color "$CYAN" "  marvin    - Start MARVIN (Claude Code in your workspace)"
+print_color "$CYAN" "  uly    - Start ULY (Claude Code in your workspace)"
 if [[ -n "$IDE_CMD" ]]; then
-    print_color "$CYAN" "  mcode     - Open MARVIN in $IDE_CMD"
+    print_color "$CYAN" "  ucode     - Open ULY in $IDE_CMD"
 fi
 echo ""
-echo "Once Claude Code starts, type /marvin to begin your first session."
+echo "Once Claude Code starts, type /uly to begin your first session."
 echo ""
 print_color "$YELLOW" "Important: Keep the template folder ($TEMPLATE_DIR)!"
 print_color "$YELLOW" "That's where you'll get updates. Run /sync to pull new features."

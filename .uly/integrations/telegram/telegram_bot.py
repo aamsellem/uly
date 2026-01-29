@@ -1,7 +1,7 @@
-"""MARVIN Telegram Bot with Tool Use.
+"""ULY Telegram Bot with Tool Use.
 
-A Telegram interface for MARVIN that can:
-- Read and write files in your MARVIN workspace
+A Telegram interface for ULY that can:
+- Read and write files in your ULY workspace
 - Search the codebase
 - Fetch content from links (YouTube, Reddit, etc.)
 - Execute tasks on your behalf
@@ -21,11 +21,11 @@ from dotenv import load_dotenv
 
 # Determine paths
 SCRIPT_DIR = Path(__file__).parent
-MARVIN_ROOT = SCRIPT_DIR.parent.parent.parent  # .marvin/integrations/telegram -> root
+ULY_ROOT = SCRIPT_DIR.parent.parent.parent  # .uly/integrations/telegram -> root
 
-# Load .env from integration directory first, then MARVIN root
+# Load .env from integration directory first, then ULY root
 load_dotenv(SCRIPT_DIR / ".env")
-load_dotenv(MARVIN_ROOT / ".env")
+load_dotenv(ULY_ROOT / ".env")
 
 from telegram import Update
 from telegram.ext import (
@@ -50,19 +50,19 @@ logger = logging.getLogger(__name__)
 
 # Paths
 DB_PATH = SCRIPT_DIR / "telegram.db"
-CLAUDE_MD_PATH = MARVIN_ROOT / "CLAUDE.md"
+CLAUDE_MD_PATH = ULY_ROOT / "CLAUDE.md"
 
 # Tool definitions for Claude
 TOOLS = [
     {
         "name": "read_file",
-        "description": "Read the contents of a file from the MARVIN workspace. Use this to retrieve markdown files, code, research notes, etc.",
+        "description": "Read the contents of a file from the ULY workspace. Use this to retrieve markdown files, code, research notes, etc.",
         "input_schema": {
             "type": "object",
             "properties": {
                 "path": {
                     "type": "string",
-                    "description": "Path relative to MARVIN workspace (e.g., 'content/notes.md', 'state/current.md', 'CLAUDE.md')"
+                    "description": "Path relative to ULY workspace (e.g., 'content/notes.md', 'state/current.md', 'CLAUDE.md')"
                 }
             },
             "required": ["path"]
@@ -70,13 +70,13 @@ TOOLS = [
     },
     {
         "name": "write_file",
-        "description": "Create or update a file in the MARVIN workspace. Use this to save content, create new documents, update notes, etc.",
+        "description": "Create or update a file in the ULY workspace. Use this to save content, create new documents, update notes, etc.",
         "input_schema": {
             "type": "object",
             "properties": {
                 "path": {
                     "type": "string",
-                    "description": "Path relative to MARVIN workspace where to save the file"
+                    "description": "Path relative to ULY workspace where to save the file"
                 },
                 "content": {
                     "type": "string",
@@ -113,7 +113,7 @@ TOOLS = [
             "properties": {
                 "path": {
                     "type": "string",
-                    "description": "Directory path relative to MARVIN workspace (e.g., 'content', 'state', 'sessions')",
+                    "description": "Directory path relative to ULY workspace (e.g., 'content', 'state', 'sessions')",
                     "default": "."
                 }
             },
@@ -128,7 +128,7 @@ TOOLS = [
             "properties": {
                 "path": {
                     "type": "string",
-                    "description": "Path relative to MARVIN workspace"
+                    "description": "Path relative to ULY workspace"
                 },
                 "content": {
                     "type": "string",
@@ -154,13 +154,13 @@ TOOLS = [
     },
     {
         "name": "send_file",
-        "description": "Send a file from the MARVIN workspace as a Telegram attachment. Use this for long documents or any file the user asks for.",
+        "description": "Send a file from the ULY workspace as a Telegram attachment. Use this for long documents or any file the user asks for.",
         "input_schema": {
             "type": "object",
             "properties": {
                 "path": {
                     "type": "string",
-                    "description": "Path relative to MARVIN workspace (e.g., 'content/notes.md')"
+                    "description": "Path relative to ULY workspace (e.g., 'content/notes.md')"
                 },
                 "caption": {
                     "type": "string",
@@ -249,8 +249,8 @@ class ConversationStore:
         conn.close()
 
 
-class MARVINBot:
-    """MARVIN Telegram Bot with tool use."""
+class ULYBot:
+    """ULY Telegram Bot with tool use."""
 
     def __init__(self, token: str, allowed_user_ids: list[int] = None):
         self.token = token
@@ -260,19 +260,19 @@ class MARVINBot:
         self.claude = anthropic.Anthropic()
         self._pending_files = []  # Files to send after response
 
-        # Load MARVIN context
+        # Load ULY context
         self.system_prompt = self._build_system_prompt()
 
     def _build_system_prompt(self) -> str:
-        """Build the system prompt with MARVIN context."""
+        """Build the system prompt with ULY context."""
         today = datetime.now().strftime("%Y-%m-%d")
-        prompt = f"""You are MARVIN, an AI assistant communicating via Telegram.
+        prompt = f"""You are ULY, an AI assistant communicating via Telegram.
 
 **Today's date**: {today}
 
 ## Your Capabilities
 You have tools to:
-- **Read files** from the MARVIN workspace (state, content, sessions, etc.)
+- **Read files** from the ULY workspace (state, content, sessions, etc.)
 - **Write/create files** to save content, notes, ideas
 - **Search** for files by name or content
 - **Fetch URLs** to get YouTube transcripts, Reddit posts, articles
@@ -286,7 +286,7 @@ You have tools to:
 - Remember conversation context
 
 ## Directory Structure
-Key locations in the MARVIN workspace:
+Key locations in the ULY workspace:
 - `state/` - Current state and goals (current.md, goals.md)
 - `content/` - Notes, drafts, content
 - `sessions/` - Daily session logs
@@ -343,17 +343,17 @@ Key locations in the MARVIN workspace:
             return f"Error executing {tool_name}: {str(e)}"
 
     def _tool_read_file(self, path: str) -> str:
-        """Read a file from MARVIN workspace."""
-        file_path = MARVIN_ROOT / path
+        """Read a file from ULY workspace."""
+        file_path = ULY_ROOT / path
         if not file_path.exists():
             return f"File not found: {path}"
         if not file_path.is_file():
             return f"Not a file: {path}"
-        # Security: ensure path is within MARVIN_ROOT
+        # Security: ensure path is within ULY_ROOT
         try:
-            file_path.resolve().relative_to(MARVIN_ROOT.resolve())
+            file_path.resolve().relative_to(ULY_ROOT.resolve())
         except ValueError:
-            return "Access denied: path outside MARVIN workspace"
+            return "Access denied: path outside ULY workspace"
 
         content = file_path.read_text()
         if len(content) > 10000:
@@ -362,12 +362,12 @@ Key locations in the MARVIN workspace:
 
     def _tool_write_file(self, path: str, content: str) -> str:
         """Write content to a file."""
-        file_path = MARVIN_ROOT / path
+        file_path = ULY_ROOT / path
         # Security check
         try:
-            file_path.resolve().relative_to(MARVIN_ROOT.resolve())
+            file_path.resolve().relative_to(ULY_ROOT.resolve())
         except ValueError:
-            return "Access denied: path outside MARVIN workspace"
+            return "Access denied: path outside ULY workspace"
 
         # Create parent directories if needed
         file_path.parent.mkdir(parents=True, exist_ok=True)
@@ -379,14 +379,14 @@ Key locations in the MARVIN workspace:
         results = []
         query_lower = query.lower()
 
-        for path in MARVIN_ROOT.glob(file_pattern):
+        for path in ULY_ROOT.glob(file_pattern):
             if not path.is_file():
                 continue
             # Skip hidden, venv, and node_modules
             if any(part.startswith('.') or part in ('venv', 'node_modules') for part in path.parts):
                 continue
 
-            rel_path = path.relative_to(MARVIN_ROOT)
+            rel_path = path.relative_to(ULY_ROOT)
 
             # Check filename
             if query_lower in path.name.lower():
@@ -414,7 +414,7 @@ Key locations in the MARVIN workspace:
 
     def _tool_list_directory(self, path: str = ".") -> str:
         """List contents of a directory."""
-        dir_path = MARVIN_ROOT / path
+        dir_path = ULY_ROOT / path
         if not dir_path.exists():
             return f"Directory not found: {path}"
         if not dir_path.is_dir():
@@ -433,11 +433,11 @@ Key locations in the MARVIN workspace:
 
     def _tool_append_to_file(self, path: str, content: str) -> str:
         """Append content to a file."""
-        file_path = MARVIN_ROOT / path
+        file_path = ULY_ROOT / path
         try:
-            file_path.resolve().relative_to(MARVIN_ROOT.resolve())
+            file_path.resolve().relative_to(ULY_ROOT.resolve())
         except ValueError:
-            return "Access denied: path outside MARVIN workspace"
+            return "Access denied: path outside ULY workspace"
 
         if file_path.exists():
             existing = file_path.read_text()
@@ -473,7 +473,7 @@ Key locations in the MARVIN workspace:
 
     def _tool_send_file(self, path: str, caption: str = "") -> str:
         """Queue a file to be sent as Telegram attachment."""
-        file_path = MARVIN_ROOT / path
+        file_path = ULY_ROOT / path
         if not file_path.exists():
             return f"File not found: {path}"
         if not file_path.is_file():
@@ -481,9 +481,9 @@ Key locations in the MARVIN workspace:
 
         # Security check
         try:
-            file_path.resolve().relative_to(MARVIN_ROOT.resolve())
+            file_path.resolve().relative_to(ULY_ROOT.resolve())
         except ValueError:
-            return "Access denied: path outside MARVIN workspace"
+            return "Access denied: path outside ULY workspace"
 
         # Queue file for sending after response
         self._pending_files.append({
@@ -626,9 +626,9 @@ Key locations in the MARVIN workspace:
             return
 
         await update.message.reply_text(
-            "Hey! MARVIN here via Telegram. 🤖\n\n"
+            "Hey! ULY here via Telegram. 🤖\n\n"
             "I can:\n"
-            "• Read and write files in your MARVIN workspace\n"
+            "• Read and write files in your ULY workspace\n"
             "• Search for content across your notes\n"
             "• Fetch YouTube transcripts, Reddit posts, etc.\n"
             "• Save and organize content for you\n\n"
@@ -641,7 +641,7 @@ Key locations in the MARVIN workspace:
             return
 
         await update.message.reply_text(
-            "**MARVIN Commands:**\n\n"
+            "**ULY Commands:**\n\n"
             "/save [topic] - Save conversation summary to session log\n"
             "/clear - Clear conversation history\n"
             "/status - Check bot status\n\n"
@@ -669,11 +669,11 @@ Key locations in the MARVIN workspace:
 
         history = self.store.get_history(update.effective_chat.id)
         await update.message.reply_text(
-            f"**MARVIN Status:**\n\n"
+            f"**ULY Status:**\n\n"
             f"• Messages in history: {len(history)}\n"
             f"• Tools available: {len(TOOLS)}\n"
             f"• User ID: {update.effective_user.id}\n"
-            f"• Workspace: {MARVIN_ROOT.name}",
+            f"• Workspace: {ULY_ROOT.name}",
             parse_mode="Markdown",
         )
 
@@ -696,11 +696,11 @@ Key locations in the MARVIN workspace:
 
         # Use Claude to summarize the conversation
         conversation_text = "\n".join([
-            f"{'User' if msg['role'] == 'user' else 'MARVIN'}: {msg['content'][:500]}"
+            f"{'User' if msg['role'] == 'user' else 'ULY'}: {msg['content'][:500]}"
             for msg in history
         ])
 
-        summary_prompt = f"""Summarize this Telegram conversation between a user and MARVIN.
+        summary_prompt = f"""Summarize this Telegram conversation between a user and ULY.
 Focus on:
 - Key topics discussed
 - Decisions made
@@ -730,7 +730,7 @@ Conversation:
         time_now = datetime.now().strftime("%H:%M")
 
         # Create sessions directory if it doesn't exist
-        sessions_dir = MARVIN_ROOT / "sessions"
+        sessions_dir = ULY_ROOT / "sessions"
         sessions_dir.mkdir(parents=True, exist_ok=True)
 
         session_file = sessions_dir / f"telegram-{today}.md"
@@ -952,8 +952,8 @@ Conversation:
         app.add_handler(MessageHandler(filters.PHOTO, self.handle_photo))
 
         # Run
-        logger.info("Starting MARVIN Telegram bot...")
-        logger.info(f"Workspace: {MARVIN_ROOT}")
+        logger.info("Starting ULY Telegram bot...")
+        logger.info(f"Workspace: {ULY_ROOT}")
         app.run_polling(allowed_updates=Update.ALL_TYPES)
 
 
@@ -961,7 +961,7 @@ def main():
     """Entry point."""
     import argparse
 
-    parser = argparse.ArgumentParser(description="MARVIN Telegram Bot")
+    parser = argparse.ArgumentParser(description="ULY Telegram Bot")
     parser.add_argument("--token", help="Telegram bot token (or set TELEGRAM_BOT_TOKEN env)")
     parser.add_argument("--user-id", type=int, help="Allowed user ID (for security)")
 
@@ -983,7 +983,7 @@ def main():
         except ValueError:
             print("Warning: Could not parse TELEGRAM_ALLOWED_USERS")
 
-    bot = MARVINBot(token, allowed_users)
+    bot = ULYBot(token, allowed_users)
     bot.run()
 
 
