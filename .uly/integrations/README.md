@@ -10,9 +10,11 @@ Ce répertoire contient les intégrations qui étendent les capacités de ULY. C
 |-------------|-------------|---------------|
 | [Google Workspace](./google-workspace/) | Gmail, Calendar, Drive | `./.uly/integrations/google-workspace/setup.sh` |
 | [Atlassian](./atlassian/) | Jira, Confluence | `./.uly/integrations/atlassian/setup.sh` |
+| [Notion](./notion/) | Notes, wikis, bases de données | `./.uly/integrations/notion/setup.sh` |
 | [Parallel Search](./parallel-search/) | Recherche web | `./.uly/integrations/parallel-search/setup.sh` |
 | [Slack](./slack/) | Messagerie d'équipe, recherche | `./.uly/integrations/slack/setup.sh` |
 | [Telegram](./telegram/) | Assistant IA mobile via Telegram | `./.uly/integrations/telegram/setup.sh` |
+| [Cloudflare Tunnel](./cloudflare-tunnel/) | API HTTPS pour N8N et automatisations | `./.uly/integrations/cloudflare-tunnel/setup.sh` |
 
 ---
 
@@ -249,7 +251,6 @@ Relancez le script de configuration et copiez un nouveau token.
 
 Voici quelques intégrations que nous aimerions voir :
 
-- **Notion** - Notes, wikis, bases de données
 - **Linear** - Suivi des issues
 - **Figma** - Fichiers de design
 - **Airtable** - Feuilles de calcul et bases de données
