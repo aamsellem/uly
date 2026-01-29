@@ -109,6 +109,10 @@ else
     fi
 fi
 
+# Generer un session-id base sur la date (reset chaque jour)
+SESSION_ID="uly-$(date +%Y-%m-%d)"
+export ULY_SESSION_ID="$SESSION_ID"
+
 # Enregistrement N8N si configure
 if [ -n "$N8N_HOSTNAME" ] && [ -n "$TUNNEL_URL" ] && [ "$TUNNEL_URL" != "[voir ci-dessus]" ]; then
     echo ""
@@ -119,11 +123,11 @@ if [ -n "$N8N_HOSTNAME" ] && [ -n "$TUNNEL_URL" ] && [ "$TUNNEL_URL" != "[voir c
 
     REGISTER_RESPONSE=$(curl -s -X POST "https://${N8N_HOSTNAME}/webhook/uly-register" \
         -H "Content-Type: application/json" \
-        -d "{\"hostname\": \"${TUNNEL_URL}\", \"name\": \"${ULY_USER_NAME}\", \"token\": \"${ULY_API_TOKEN}\"}" \
+        -d "{\"hostname\": \"${TUNNEL_URL}\", \"name\": \"${ULY_USER_NAME}\", \"token\": \"${ULY_API_TOKEN}\", \"session_id\": \"${SESSION_ID}\"}" \
         2>/dev/null)
 
     if [ $? -eq 0 ]; then
-        echo -e "${GREEN}✓${NC} Enregistre aupres de N8N"
+        echo -e "${GREEN}✓${NC} Enregistre aupres de N8N (session: ${SESSION_ID})"
     else
         echo -e "${YELLOW}! Echec de l'enregistrement N8N${NC}"
     fi

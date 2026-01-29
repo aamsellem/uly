@@ -35,6 +35,7 @@ load_dotenv(ULY_ROOT / ".env")
 # Configuration
 API_TOKEN = os.environ.get("ULY_API_TOKEN", "")
 SERVER_PORT = int(os.environ.get("ULY_SERVER_PORT", "8787"))
+SESSION_ID = os.environ.get("ULY_SESSION_ID", "")
 
 # IP Whitelist (optionnel) - séparées par des virgules
 # Ex: "192.168.1.100,10.0.0.50" ou vide pour autoriser tout
@@ -215,12 +216,15 @@ async def call_claude(
         Tuple (response, session_id)
     """
     try:
+        # Utiliser le session_id global si non fourni
+        effective_session_id = session_id or SESSION_ID
+
         # Construire les arguments
         args = ["claude", "-p", message]
 
-        # Si session_id fourni, reprendre la conversation
-        if session_id:
-            args.extend(["--resume", session_id])
+        # Si session_id, utiliser la même session (continuité)
+        if effective_session_id:
+            args.extend(["--resume", effective_session_id])
 
         # Créer le process Claude Code
         process = await asyncio.create_subprocess_exec(
@@ -258,12 +262,8 @@ async def call_claude(
         if not response:
             response = "Je n'ai pas pu générer de réponse."
 
-        # Générer un session_id si pas fourni (pour nouvelle conversation)
-        # Note: Claude Code ne retourne pas facilement l'ID de session en mode -p
-        # On génère un ID côté serveur pour tracker les conversations
-        new_session_id = session_id or str(uuid.uuid4())[:8]
-
-        return response, new_session_id
+        # Retourner le session_id utilisé
+        return response, effective_session_id
 
     except HTTPException:
         raise
@@ -604,6 +604,11 @@ if __name__ == "__main__":
         logger.error("   Installez-le avec: npm install -g @anthropic-ai/claude-code")
     else:
         logger.info("✓ Claude Code disponible")
+
+    if SESSION_ID:
+        logger.info(f"✓ Session ID: {SESSION_ID}")
+    else:
+        logger.warning("⚠️  Pas de session ID - chaque requête sera indépendante")
 
     uvicorn.run(
         app,
