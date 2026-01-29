@@ -9,125 +9,79 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+BOLD='\033[1m'
+DIM='\033[2m'
 NC='\033[0m' # Pas de Couleur
 
 # Repertoire du script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ULY_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 
+clear
 echo ""
-echo -e "${BLUE}========================================${NC}"
-echo -e "${BLUE}  Configuration Cloudflare Tunnel${NC}"
-echo -e "${BLUE}========================================${NC}"
+echo -e "${BLUE}╔════════════════════════════════════════════════════════════╗${NC}"
+echo -e "${BLUE}║${NC}       ${BOLD}Configuration Cloudflare Tunnel pour ULY${NC}           ${BLUE}║${NC}"
+echo -e "${BLUE}╚════════════════════════════════════════════════════════════╝${NC}"
 echo ""
-echo "Expose ULY sur Internet via un tunnel HTTPS securise."
-echo "Parfait pour N8N, Make, Zapier, et autres webhooks."
+echo "Ce script va configurer un tunnel securise pour acceder a ULY"
+echo "depuis Internet (N8N, Make, Zapier, webhooks, etc.)"
 echo ""
+echo -e "${DIM}Temps estime : 2-5 minutes${NC}"
+echo ""
+echo -e "${YELLOW}Appuyez sur Entree pour commencer...${NC}"
+read -r
 
 # ========================================
-# Verifications des prerequis
+# ETAPE 1: Type de tunnel
 # ========================================
 
-echo -e "${BLUE}Verification des prerequis...${NC}"
+clear
 echo ""
-
-# Verifier Python
-if command -v python3 &> /dev/null; then
-    PYTHON_VERSION=$(python3 --version 2>&1 | cut -d' ' -f2)
-    echo -e "${GREEN}✓ Python installe (${PYTHON_VERSION})${NC}"
-else
-    echo -e "${RED}✗ Python 3 non trouve${NC}"
-    echo "  Installez Python 3.10+ depuis https://python.org"
-    exit 1
-fi
-
-# Verifier pip
-if command -v pip3 &> /dev/null; then
-    echo -e "${GREEN}✓ pip installe${NC}"
-else
-    echo -e "${RED}✗ pip non trouve${NC}"
-    echo "  Installez pip : python3 -m ensurepip"
-    exit 1
-fi
-
-# Verifier/Installer cloudflared
-if command -v cloudflared &> /dev/null; then
-    CLOUDFLARED_VERSION=$(cloudflared --version 2>&1 | head -1)
-    echo -e "${GREEN}✓ cloudflared installe${NC}"
-    echo "  $CLOUDFLARED_VERSION"
-else
-    echo -e "${YELLOW}! cloudflared non trouve${NC}"
-    echo ""
-    echo "Installation automatique de cloudflared..."
-
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        # macOS
-        if command -v brew &> /dev/null; then
-            brew install cloudflare/cloudflare/cloudflared
-        else
-            echo -e "${RED}✗ Homebrew requis pour installer cloudflared sur macOS${NC}"
-            echo "  Installez Homebrew : https://brew.sh"
-            echo "  Ou installez cloudflared manuellement : https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/installation"
-            exit 1
-        fi
-    elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        # Linux
-        if command -v apt-get &> /dev/null; then
-            curl -L --output /tmp/cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
-            sudo dpkg -i /tmp/cloudflared.deb
-            rm /tmp/cloudflared.deb
-        elif command -v yum &> /dev/null; then
-            curl -L --output /tmp/cloudflared.rpm https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-x86_64.rpm
-            sudo yum install -y /tmp/cloudflared.rpm
-            rm /tmp/cloudflared.rpm
-        else
-            echo -e "${RED}✗ Impossible d'installer cloudflared automatiquement${NC}"
-            echo "  Installez manuellement : https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/installation"
-            exit 1
-        fi
-    else
-        echo -e "${RED}✗ Systeme non supporte pour l'installation automatique${NC}"
-        echo "  Installez cloudflared manuellement : https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/installation"
-        exit 1
-    fi
-
-    if command -v cloudflared &> /dev/null; then
-        echo -e "${GREEN}✓ cloudflared installe avec succes${NC}"
-    else
-        echo -e "${RED}✗ Installation de cloudflared echouee${NC}"
-        exit 1
-    fi
-fi
-
-# Verifier cle API Anthropic
-if [ -n "$ANTHROPIC_API_KEY" ]; then
-    echo -e "${GREEN}✓ ANTHROPIC_API_KEY trouve dans l'environnement${NC}"
-elif [ -f "$ULY_ROOT/.env" ] && grep -q "ANTHROPIC_API_KEY" "$ULY_ROOT/.env"; then
-    echo -e "${GREEN}✓ ANTHROPIC_API_KEY trouve dans .env${NC}"
-else
-    echo -e "${YELLOW}! ANTHROPIC_API_KEY non trouve${NC}"
-    echo "  Vous devrez le definir avant de lancer le serveur."
-    echo "  Obtenez votre cle : https://console.anthropic.com/settings/keys"
-fi
-
+echo -e "${BLUE}╔════════════════════════════════════════════════════════════╗${NC}"
+echo -e "${BLUE}║${NC}  ${BOLD}Etape 1/4 : Choix du Type de Tunnel${NC}                      ${BLUE}║${NC}"
+echo -e "${BLUE}╚════════════════════════════════════════════════════════════╝${NC}"
 echo ""
-echo -e "${BLUE}========================================${NC}"
-echo -e "${BLUE}  Etape 1: Type de Tunnel${NC}"
-echo -e "${BLUE}========================================${NC}"
+echo -e "${CYAN}Qu'est-ce qu'un tunnel Cloudflare ?${NC}"
 echo ""
-echo "Deux options disponibles :"
+echo "  Un tunnel cree un lien securise entre votre ordinateur et Internet."
+echo "  Pas besoin d'ouvrir de ports sur votre routeur/firewall."
+echo "  Tout le trafic passe par HTTPS (chiffre)."
 echo ""
-echo "  1) Tunnel rapide (Quick Tunnel)"
-echo "     - Pas besoin de compte Cloudflare"
-echo "     - URL temporaire qui change a chaque redemarrage"
-echo "     - Parfait pour tester"
+echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
-echo "  2) Tunnel nomme (Named Tunnel)"
-echo "     - Necessite un compte Cloudflare (gratuit)"
-echo "     - URL permanente et stable"
-echo "     - Recommande pour la production"
+echo -e "${BOLD}Option 1 : Tunnel Rapide (Quick Tunnel)${NC}"
 echo ""
-echo -e "${YELLOW}Choix [1]:${NC}"
+echo "  ${GREEN}+${NC} Pas besoin de compte Cloudflare"
+echo "  ${GREEN}+${NC} Pret en 30 secondes"
+echo "  ${GREEN}+${NC} Parfait pour tester"
+echo ""
+echo "  ${RED}-${NC} URL temporaire (change a chaque redemarrage)"
+echo "  ${RED}-${NC} Exemple : https://random-words-here.trycloudflare.com"
+echo ""
+echo -e "  ${DIM}Recommande si : Vous voulez juste tester ou usage occasionnel${NC}"
+echo ""
+echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo ""
+echo -e "${BOLD}Option 2 : Tunnel Nomme (Named Tunnel)${NC}"
+echo ""
+echo "  ${GREEN}+${NC} URL permanente et stable"
+echo "  ${GREEN}+${NC} Meme URL a chaque redemarrage"
+echo "  ${GREEN}+${NC} Peut etre connecte a votre propre domaine"
+echo ""
+echo "  ${RED}-${NC} Necessite un compte Cloudflare (gratuit)"
+echo "  ${RED}-${NC} Configuration initiale plus longue"
+echo ""
+echo -e "  ${DIM}Recommande si : Usage en production, workflows N8N permanents${NC}"
+echo ""
+echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo ""
+echo -e "Quel type de tunnel voulez-vous ?"
+echo ""
+echo "  ${BOLD}1)${NC} Tunnel Rapide ${DIM}(recommande pour debuter)${NC}"
+echo "  ${BOLD}2)${NC} Tunnel Nomme ${DIM}(recommande pour la production)${NC}"
+echo ""
+echo -e "${YELLOW}Votre choix [1]:${NC} "
 read -r TUNNEL_TYPE
 TUNNEL_TYPE=${TUNNEL_TYPE:-1}
 
@@ -138,39 +92,345 @@ if [[ "$TUNNEL_TYPE" == "2" ]]; then
     USE_NAMED_TUNNEL=true
 
     echo ""
-    echo -e "${BLUE}========================================${NC}"
-    echo -e "${BLUE}  Connexion a Cloudflare${NC}"
-    echo -e "${BLUE}========================================${NC}"
+    echo -e "${CYAN}━━━ Configuration du Tunnel Nomme ━━━${NC}"
     echo ""
-    echo "Vous allez etre redirige vers Cloudflare pour vous connecter."
+    echo -e "${BOLD}Prerequis :${NC} Compte Cloudflare (gratuit)"
     echo ""
-    echo -e "${YELLOW}Appuyez sur Entree pour continuer...${NC}"
+    echo -e "${YELLOW}Vous n'avez pas encore de compte ?${NC}"
+    echo ""
+    echo "  1. Allez sur ${BLUE}https://dash.cloudflare.com/sign-up${NC}"
+    echo "  2. Creez un compte avec votre email"
+    echo "  3. Pas besoin d'ajouter de domaine pour le tunnel"
+    echo "  4. Revenez ici une fois connecte"
+    echo ""
+    echo -e "${YELLOW}Appuyez sur Entree quand vous avez un compte Cloudflare...${NC}"
+    read -r
+
+    echo ""
+    echo -e "${CYAN}Nom de votre tunnel :${NC}"
+    echo ""
+    echo "  Ce nom identifie votre tunnel dans Cloudflare."
+    echo "  Utilisez quelque chose de reconnaissable."
+    echo ""
+    echo "  Exemples : uly-maison, uly-bureau, mon-assistant"
+    echo ""
+    echo -e "${YELLOW}Nom du tunnel [uly-tunnel]:${NC} "
+    read -r TUNNEL_NAME
+    TUNNEL_NAME=${TUNNEL_NAME:-uly-tunnel}
+
+    echo ""
+    echo -e "${GREEN}✓ Tunnel nomme : $TUNNEL_NAME${NC}"
+fi
+
+# ========================================
+# ETAPE 2: Token d'authentification
+# ========================================
+
+clear
+echo ""
+echo -e "${BLUE}╔════════════════════════════════════════════════════════════╗${NC}"
+echo -e "${BLUE}║${NC}  ${BOLD}Etape 2/4 : Token d'Authentification${NC}                     ${BLUE}║${NC}"
+echo -e "${BLUE}╚════════════════════════════════════════════════════════════╝${NC}"
+echo ""
+echo -e "${CYAN}Pourquoi un token ?${NC}"
+echo ""
+echo "  Le token est comme un mot de passe pour votre API."
+echo "  Sans lui, n'importe qui avec l'URL pourrait controler ULY."
+echo ""
+echo "  ${BOLD}Chaque requete doit inclure :${NC}"
+echo "  Authorization: Bearer VOTRE_TOKEN"
+echo ""
+echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo ""
+
+# Generer un token aleatoire
+if command -v python3 &> /dev/null; then
+    GENERATED_TOKEN=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))")
+else
+    GENERATED_TOKEN=$(cat /dev/urandom | LC_ALL=C tr -dc 'a-zA-Z0-9' | fold -w 43 | head -n 1)
+fi
+
+echo -e "${BOLD}Token genere automatiquement :${NC}"
+echo ""
+echo -e "  ${GREEN}$GENERATED_TOKEN${NC}"
+echo ""
+echo -e "${DIM}(Ce token est cryptographiquement securise)${NC}"
+echo ""
+echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo ""
+echo "Que voulez-vous faire ?"
+echo ""
+echo "  ${BOLD}1)${NC} Utiliser ce token ${DIM}(recommande)${NC}"
+echo "  ${BOLD}2)${NC} Entrer mon propre token"
+echo ""
+echo -e "${YELLOW}Votre choix [1]:${NC} "
+read -r TOKEN_CHOICE
+TOKEN_CHOICE=${TOKEN_CHOICE:-1}
+
+if [[ "$TOKEN_CHOICE" == "2" ]]; then
+    echo ""
+    echo -e "${CYAN}Votre token personnalise :${NC}"
+    echo ""
+    echo "  - Minimum 16 caracteres"
+    echo "  - Melangez lettres, chiffres, symboles"
+    echo "  - Ne reutilisez pas un mot de passe existant"
+    echo ""
+    echo -e "${YELLOW}Entrez votre token (les caracteres sont masques) :${NC} "
+    read -rs API_TOKEN
+    echo ""
+
+    if [ ${#API_TOKEN} -lt 16 ]; then
+        echo -e "${RED}! Token trop court (${#API_TOKEN} caracteres, minimum 16)${NC}"
+        echo "  Utilisation du token genere a la place."
+        API_TOKEN="$GENERATED_TOKEN"
+    else
+        echo -e "${GREEN}✓ Token personnalise accepte${NC}"
+    fi
+else
+    API_TOKEN="$GENERATED_TOKEN"
+    echo -e "${GREEN}✓ Token genere utilise${NC}"
+fi
+
+# ========================================
+# ETAPE 3: IP Whitelist (optionnel)
+# ========================================
+
+clear
+echo ""
+echo -e "${BLUE}╔════════════════════════════════════════════════════════════╗${NC}"
+echo -e "${BLUE}║${NC}  ${BOLD}Etape 3/4 : Restriction par IP (Optionnel)${NC}               ${BLUE}║${NC}"
+echo -e "${BLUE}╚════════════════════════════════════════════════════════════╝${NC}"
+echo ""
+echo -e "${CYAN}Qu'est-ce que l'IP Whitelist ?${NC}"
+echo ""
+echo "  En plus du token, vous pouvez limiter l'acces a certaines IPs."
+echo "  Seules ces IPs pourront appeler votre API."
+echo ""
+echo "  ${BOLD}Sans whitelist :${NC} Tout le monde avec le token peut acceder"
+echo "  ${BOLD}Avec whitelist :${NC} Seules les IPs listees + token peuvent acceder"
+echo ""
+echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo ""
+echo -e "${CYAN}Comment trouver l'IP de votre serveur N8N ?${NC}"
+echo ""
+echo "  ${BOLD}Si N8N est sur un VPS/serveur :${NC}"
+echo "    Connectez-vous en SSH et tapez : ${BLUE}curl ifconfig.me${NC}"
+echo ""
+echo "  ${BOLD}Si N8N est chez vous :${NC}"
+echo "    Allez sur ${BLUE}https://whatismyip.com${NC} depuis ce PC"
+echo ""
+echo "  ${BOLD}Si N8N est sur n8n.cloud :${NC}"
+echo "    Contactez le support n8n pour connaitre leurs IPs"
+echo ""
+echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo ""
+echo "Voulez-vous configurer une IP Whitelist ?"
+echo ""
+echo "  ${BOLD}1)${NC} Non, autoriser toutes les IPs ${DIM}(le token suffit)${NC}"
+echo "  ${BOLD}2)${NC} Oui, limiter a certaines IPs ${DIM}(securite maximale)${NC}"
+echo ""
+echo -e "${YELLOW}Votre choix [1]:${NC} "
+read -r WHITELIST_CHOICE
+WHITELIST_CHOICE=${WHITELIST_CHOICE:-1}
+
+IP_WHITELIST=""
+
+if [[ "$WHITELIST_CHOICE" == "2" ]]; then
+    echo ""
+    echo -e "${CYAN}Entrez les IPs autorisees :${NC}"
+    echo ""
+    echo "  Format : IP1,IP2,IP3 (separees par des virgules)"
+    echo "  Exemple : 203.0.113.50,198.51.100.25"
+    echo ""
+    echo -e "${YELLOW}IPs autorisees :${NC} "
+    read -r IP_WHITELIST
+
+    if [[ -n "$IP_WHITELIST" ]]; then
+        echo -e "${GREEN}✓ Whitelist configuree : $IP_WHITELIST${NC}"
+    else
+        echo -e "${YELLOW}! Aucune IP entree, whitelist desactivee${NC}"
+    fi
+else
+    echo -e "${GREEN}✓ Whitelist desactivee (toutes IPs autorisees avec token)${NC}"
+fi
+
+# ========================================
+# Resume avant installation
+# ========================================
+
+clear
+echo ""
+echo -e "${BLUE}╔════════════════════════════════════════════════════════════╗${NC}"
+echo -e "${BLUE}║${NC}  ${BOLD}Etape 4/4 : Resume et Installation${NC}                       ${BLUE}║${NC}"
+echo -e "${BLUE}╚════════════════════════════════════════════════════════════╝${NC}"
+echo ""
+echo -e "${CYAN}Recapitulatif de vos choix :${NC}"
+echo ""
+if [[ "$USE_NAMED_TUNNEL" == "true" ]]; then
+    echo -e "  Type de tunnel   : ${GREEN}Tunnel Nomme ($TUNNEL_NAME)${NC}"
+    echo -e "                     ${DIM}URL permanente${NC}"
+else
+    echo -e "  Type de tunnel   : ${GREEN}Tunnel Rapide${NC}"
+    echo -e "                     ${DIM}URL temporaire (change a chaque redemarrage)${NC}"
+fi
+echo ""
+echo -e "  Token            : ${GREEN}${API_TOKEN:0:20}...${NC}"
+echo -e "                     ${DIM}${#API_TOKEN} caracteres${NC}"
+echo ""
+if [[ -n "$IP_WHITELIST" ]]; then
+    echo -e "  IP Whitelist     : ${GREEN}$IP_WHITELIST${NC}"
+else
+    echo -e "  IP Whitelist     : ${YELLOW}Desactivee${NC}"
+    echo -e "                     ${DIM}Toutes les IPs autorisees (avec token)${NC}"
+fi
+echo ""
+echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo ""
+echo -e "${BOLD}L'installation va :${NC}"
+echo ""
+echo "  1. Verifier les prerequis (Python, Claude Code, cloudflared)"
+echo "  2. Installer cloudflared si necessaire"
+if [[ "$USE_NAMED_TUNNEL" == "true" ]]; then
+    echo "  3. Vous connecter a Cloudflare (navigateur)"
+    echo "  4. Creer le tunnel '$TUNNEL_NAME'"
+fi
+echo "  5. Configurer le serveur API"
+echo ""
+echo -e "${YELLOW}Appuyez sur Entree pour lancer l'installation, ou Ctrl+C pour annuler...${NC}"
+read -r
+
+# ========================================
+# Installation
+# ========================================
+
+echo ""
+echo -e "${BLUE}━━━ Verification des Prerequis ━━━${NC}"
+echo ""
+
+# Verifier Python
+if command -v python3 &> /dev/null; then
+    PYTHON_VERSION=$(python3 --version 2>&1 | cut -d' ' -f2)
+    echo -e "${GREEN}✓${NC} Python installe (${PYTHON_VERSION})"
+else
+    echo -e "${RED}✗${NC} Python 3 non trouve"
+    echo ""
+    echo "  ${BOLD}Comment installer Python :${NC}"
+    echo "    macOS   : brew install python3"
+    echo "    Ubuntu  : sudo apt install python3"
+    echo "    Windows : https://python.org/downloads"
+    exit 1
+fi
+
+# Verifier pip
+if command -v pip3 &> /dev/null; then
+    echo -e "${GREEN}✓${NC} pip installe"
+else
+    echo -e "${RED}✗${NC} pip non trouve"
+    echo "  Installez pip : python3 -m ensurepip"
+    exit 1
+fi
+
+# Verifier Claude Code
+if command -v claude &> /dev/null; then
+    echo -e "${GREEN}✓${NC} Claude Code installe"
+else
+    echo -e "${RED}✗${NC} Claude Code non trouve"
+    echo ""
+    echo "  ${BOLD}Comment installer Claude Code :${NC}"
+    echo "    npm install -g @anthropic-ai/claude-code"
+    exit 1
+fi
+
+# Verifier/Installer cloudflared
+if command -v cloudflared &> /dev/null; then
+    CLOUDFLARED_VERSION=$(cloudflared --version 2>&1 | head -1)
+    echo -e "${GREEN}✓${NC} cloudflared installe"
+    echo "    $CLOUDFLARED_VERSION"
+else
+    echo -e "${YELLOW}!${NC} cloudflared non trouve - installation en cours..."
+    echo ""
+
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        if command -v brew &> /dev/null; then
+            echo "  Installation via Homebrew..."
+            brew install cloudflare/cloudflare/cloudflared
+        else
+            echo -e "${RED}✗${NC} Homebrew requis pour installer cloudflared sur macOS"
+            echo ""
+            echo "  ${BOLD}Installez Homebrew :${NC}"
+            echo "    /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
+            echo ""
+            echo "  ${BOLD}Ou installez cloudflared manuellement :${NC}"
+            echo "    https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/installation"
+            exit 1
+        fi
+    elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        if command -v apt-get &> /dev/null; then
+            echo "  Telechargement du paquet Debian..."
+            curl -L --output /tmp/cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+            sudo dpkg -i /tmp/cloudflared.deb
+            rm /tmp/cloudflared.deb
+        elif command -v yum &> /dev/null; then
+            echo "  Telechargement du paquet RPM..."
+            curl -L --output /tmp/cloudflared.rpm https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-x86_64.rpm
+            sudo yum install -y /tmp/cloudflared.rpm
+            rm /tmp/cloudflared.rpm
+        else
+            echo -e "${RED}✗${NC} Impossible d'installer cloudflared automatiquement"
+            echo "  Installez manuellement : https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/installation"
+            exit 1
+        fi
+    else
+        echo -e "${RED}✗${NC} Systeme non supporte pour l'installation automatique"
+        echo "  Installez manuellement : https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/installation"
+        exit 1
+    fi
+
+    if command -v cloudflared &> /dev/null; then
+        echo -e "${GREEN}✓${NC} cloudflared installe avec succes"
+    else
+        echo -e "${RED}✗${NC} Installation de cloudflared echouee"
+        exit 1
+    fi
+fi
+
+# ========================================
+# Configuration Cloudflare (si tunnel nomme)
+# ========================================
+
+if [[ "$USE_NAMED_TUNNEL" == "true" ]]; then
+    echo ""
+    echo -e "${BLUE}━━━ Connexion a Cloudflare ━━━${NC}"
+    echo ""
+    echo "Un navigateur va s'ouvrir pour vous connecter a Cloudflare."
+    echo ""
+    echo -e "${CYAN}Instructions :${NC}"
+    echo "  1. Connectez-vous avec votre compte Cloudflare"
+    echo "  2. Autorisez cloudflared"
+    echo "  3. Revenez ici une fois termine"
+    echo ""
+    echo -e "${YELLOW}Appuyez sur Entree pour ouvrir le navigateur...${NC}"
     read -r
 
     cloudflared tunnel login
 
     echo ""
-    echo -e "${GREEN}✓ Connexion reussie${NC}"
+    echo -e "${GREEN}✓${NC} Connexion reussie"
 
     echo ""
-    echo -e "${BLUE}========================================${NC}"
-    echo -e "${BLUE}  Creation du Tunnel${NC}"
-    echo -e "${BLUE}========================================${NC}"
+    echo -e "${BLUE}━━━ Creation du Tunnel ━━━${NC}"
     echo ""
-    echo "Nom pour votre tunnel (ex: uly-tunnel, mon-assistant) :"
-    echo ""
-    echo -e "${YELLOW}Nom [uly-tunnel]:${NC}"
-    read -r TUNNEL_NAME
-    TUNNEL_NAME=${TUNNEL_NAME:-uly-tunnel}
 
     # Supprimer le tunnel existant si present
+    echo "  Verification si le tunnel existe deja..."
     cloudflared tunnel delete "$TUNNEL_NAME" 2>/dev/null || true
 
     # Creer le nouveau tunnel
+    echo "  Creation du tunnel '$TUNNEL_NAME'..."
     cloudflared tunnel create "$TUNNEL_NAME"
 
     echo ""
-    echo -e "${GREEN}✓ Tunnel '$TUNNEL_NAME' cree${NC}"
+    echo -e "${GREEN}✓${NC} Tunnel '$TUNNEL_NAME' cree"
 
     # Obtenir l'ID du tunnel
     TUNNEL_ID=$(cloudflared tunnel list | grep "$TUNNEL_NAME" | awk '{print $1}')
@@ -184,73 +444,38 @@ ingress:
   - service: http://localhost:8787
 EOF
 
-    echo -e "${GREEN}✓ Configuration du tunnel creee${NC}"
+    echo -e "${GREEN}✓${NC} Configuration du tunnel creee"
 fi
 
-echo ""
-echo -e "${BLUE}========================================${NC}"
-echo -e "${BLUE}  Etape 2: Token d'Authentification${NC}"
-echo -e "${BLUE}========================================${NC}"
-echo ""
-echo "Un token securise protege votre API contre les acces non autorises."
-echo ""
-
-# Generer un token aleatoire
-GENERATED_TOKEN=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))")
-
-echo "Token genere automatiquement : "
-echo -e "${GREEN}$GENERATED_TOKEN${NC}"
-echo ""
-echo "Voulez-vous utiliser ce token ou en definir un personnalise ?"
-echo "  1) Utiliser le token genere"
-echo "  2) Definir mon propre token"
-echo ""
-echo -e "${YELLOW}Choix [1]:${NC}"
-read -r TOKEN_CHOICE
-TOKEN_CHOICE=${TOKEN_CHOICE:-1}
-
-if [[ "$TOKEN_CHOICE" == "2" ]]; then
-    echo ""
-    echo -e "${YELLOW}Entrez votre token (min 16 caracteres):${NC}"
-    read -rs API_TOKEN
-    echo ""
-
-    if [ ${#API_TOKEN} -lt 16 ]; then
-        echo -e "${RED}✗ Token trop court (minimum 16 caracteres)${NC}"
-        echo "  Utilisation du token genere a la place."
-        API_TOKEN="$GENERATED_TOKEN"
-    fi
-else
-    API_TOKEN="$GENERATED_TOKEN"
-fi
-
-echo -e "${GREEN}✓ Token configure${NC}"
+# ========================================
+# Installation des dependances Python
+# ========================================
 
 echo ""
-echo -e "${BLUE}========================================${NC}"
-echo -e "${BLUE}  Etape 3: Installation des Dependances${NC}"
-echo -e "${BLUE}========================================${NC}"
+echo -e "${BLUE}━━━ Installation des Dependances Python ━━━${NC}"
 echo ""
 
 # Creer l'environnement virtuel
 if [ ! -d "$SCRIPT_DIR/venv" ]; then
-    echo "Creation de l'environnement virtuel..."
+    echo "  Creation de l'environnement virtuel..."
     python3 -m venv "$SCRIPT_DIR/venv"
 fi
 
-echo "Activation de l'environnement virtuel..."
+echo "  Activation de l'environnement virtuel..."
 source "$SCRIPT_DIR/venv/bin/activate"
 
-echo "Installation des dependances..."
+echo "  Installation des packages..."
 pip install -q --upgrade pip
-pip install -q fastapi uvicorn anthropic python-dotenv aiofiles
+pip install -q fastapi uvicorn python-dotenv aiofiles
 
-echo -e "${GREEN}✓ Dependances installees${NC}"
+echo -e "${GREEN}✓${NC} Dependances installees"
+
+# ========================================
+# Sauvegarde de la configuration
+# ========================================
 
 echo ""
-echo -e "${BLUE}========================================${NC}"
-echo -e "${BLUE}  Etape 4: Sauvegarde de la Configuration${NC}"
-echo -e "${BLUE}========================================${NC}"
+echo -e "${BLUE}━━━ Sauvegarde de la Configuration ━━━${NC}"
 echo ""
 
 # Creer le fichier .env
@@ -270,9 +495,13 @@ SERVER_PORT=8787
 
 # Chemin vers l'espace de travail ULY
 ULY_WORKSPACE=$ULY_ROOT
+
+# IP Whitelist (optionnel, separees par des virgules)
+# Laissez vide pour autoriser toutes les IPs
+ULY_IP_WHITELIST=$IP_WHITELIST
 EOF
 
-echo -e "${GREEN}✓ Configuration sauvegardee dans .env${NC}"
+echo -e "${GREEN}✓${NC} Configuration sauvegardee dans .env"
 
 # Creer le script run.sh
 cat > "$SCRIPT_DIR/run.sh" << 'RUNSCRIPT'
@@ -293,24 +522,20 @@ if [ -f "$SCRIPT_DIR/.env" ]; then
     export $(grep -v '^#' "$SCRIPT_DIR/.env" | xargs)
 fi
 
-# Charger aussi .env du projet principal pour ANTHROPIC_API_KEY
-ULY_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-if [ -f "$ULY_ROOT/.env" ]; then
-    export $(grep -v '^#' "$ULY_ROOT/.env" | xargs)
-fi
-
 echo ""
-echo -e "${BLUE}========================================${NC}"
-echo -e "${BLUE}  Demarrage ULY API + Tunnel${NC}"
-echo -e "${BLUE}========================================${NC}"
+echo -e "${BLUE}╔════════════════════════════════════════╗${NC}"
+echo -e "${BLUE}║${NC}     ${GREEN}Demarrage ULY API + Tunnel${NC}        ${BLUE}║${NC}"
+echo -e "${BLUE}╚════════════════════════════════════════╝${NC}"
 echo ""
 
-# Verifier ANTHROPIC_API_KEY
-if [ -z "$ANTHROPIC_API_KEY" ]; then
-    echo -e "${RED}✗ ANTHROPIC_API_KEY non defini${NC}"
-    echo "  Ajoutez-le a votre fichier .env"
+# Verifier que Claude Code est disponible
+if ! command -v claude &> /dev/null; then
+    echo -e "${RED}✗ Claude Code non disponible${NC}"
+    echo "  Installez-le avec : npm install -g @anthropic-ai/claude-code"
     exit 1
 fi
+
+echo -e "${GREEN}✓${NC} Claude Code disponible"
 
 # Activer l'environnement virtuel
 source "$SCRIPT_DIR/venv/bin/activate"
@@ -341,7 +566,7 @@ if ! kill -0 $SERVER_PID 2>/dev/null; then
     exit 1
 fi
 
-echo -e "${GREEN}✓ Serveur API demarre (PID: $SERVER_PID)${NC}"
+echo -e "${GREEN}✓${NC} Serveur API demarre (PID: $SERVER_PID)"
 
 # Demarrer le tunnel
 echo ""
@@ -365,27 +590,36 @@ else
     TUNNEL_PID=$!
 
     # Attendre et extraire l'URL
+    echo "  Attente de l'URL du tunnel..."
     sleep 5
     TUNNEL_URL=$(grep -o 'https://[^ ]*\.trycloudflare\.com' /tmp/cloudflared.log | head -1)
 fi
 
 echo ""
-echo -e "${GREEN}========================================${NC}"
-echo -e "${GREEN}  ULY API en Ligne !${NC}"
-echo -e "${GREEN}========================================${NC}"
+echo -e "${GREEN}╔════════════════════════════════════════════════════════════╗${NC}"
+echo -e "${GREEN}║${NC}              ${GREEN}ULY API en Ligne !${NC}                          ${GREEN}║${NC}"
+echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}"
 echo ""
-echo -e "URL publique : ${BLUE}${TUNNEL_URL}${NC}"
+echo -e "  ${BLUE}URL publique :${NC} ${TUNNEL_URL}"
 echo ""
-echo "Votre token d'authentification :"
-echo -e "${YELLOW}$ULY_API_TOKEN${NC}"
+echo -e "  ${BLUE}Token :${NC} $ULY_API_TOKEN"
 echo ""
-echo "Exemple de requete :"
-echo -e "${BLUE}curl -X POST ${TUNNEL_URL}/ask \\${NC}"
-echo -e "${BLUE}  -H \"Authorization: Bearer \$ULY_API_TOKEN\" \\${NC}"
-echo -e "${BLUE}  -H \"Content-Type: application/json\" \\${NC}"
-echo -e "${BLUE}  -d '{\"message\": \"Quel est mon etat actuel?\"}'${NC}"
+if [ -n "$ULY_IP_WHITELIST" ]; then
+    echo -e "  ${BLUE}IP Whitelist :${NC} $ULY_IP_WHITELIST"
+    echo ""
+fi
+echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
-echo -e "${YELLOW}Appuyez sur Ctrl+C pour arreter${NC}"
+echo "  Exemple de requete :"
+echo ""
+echo -e "  ${BLUE}curl -X POST ${TUNNEL_URL}/ask \\${NC}"
+echo -e "  ${BLUE}  -H \"Authorization: Bearer \$ULY_API_TOKEN\" \\${NC}"
+echo -e "  ${BLUE}  -H \"Content-Type: application/json\" \\${NC}"
+echo -e "  ${BLUE}  -d '{\"message\": \"Bonjour !\"}'${NC}"
+echo ""
+echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo ""
+echo -e "  ${YELLOW}Appuyez sur Ctrl+C pour arreter${NC}"
 echo ""
 
 # Attendre
@@ -393,7 +627,7 @@ wait
 RUNSCRIPT
 
 chmod +x "$SCRIPT_DIR/run.sh"
-echo -e "${GREEN}✓ Script de demarrage cree${NC}"
+echo -e "${GREEN}✓${NC} Script de demarrage cree"
 
 # Ajouter .env au .gitignore
 if [ ! -f "$SCRIPT_DIR/.gitignore" ]; then
@@ -405,28 +639,56 @@ __pycache__/
 config.yml
 *.log
 EOF
-    echo -e "${GREEN}✓ .gitignore cree${NC}"
+    echo -e "${GREEN}✓${NC} .gitignore cree"
 fi
 
+# ========================================
+# Message final
+# ========================================
+
+clear
 echo ""
-echo -e "${BLUE}========================================${NC}"
-echo -e "${GREEN}  Configuration Terminee !${NC}"
-echo -e "${BLUE}========================================${NC}"
+echo -e "${GREEN}╔════════════════════════════════════════════════════════════╗${NC}"
+echo -e "${GREEN}║${NC}           ${BOLD}Configuration Terminee avec Succes !${NC}            ${GREEN}║${NC}"
+echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}"
 echo ""
-echo "Pour demarrer le service :"
+echo -e "${CYAN}Votre token d'authentification :${NC}"
 echo ""
-echo -e "  ${YELLOW}./.uly/integrations/cloudflare-tunnel/run.sh${NC}"
-echo ""
-echo "Votre token d'authentification :"
 echo -e "  ${GREEN}$API_TOKEN${NC}"
 echo ""
-echo -e "${YELLOW}IMPORTANT: Gardez ce token secret !${NC}"
-echo "Il est sauvegarde dans .uly/integrations/cloudflare-tunnel/.env"
+echo -e "  ${RED}IMPORTANT : Gardez ce token secret !${NC}"
+echo "  Il est sauvegarde dans : .uly/integrations/cloudflare-tunnel/.env"
 echo ""
-echo "Essayez ces commandes une fois le service demarre :"
+echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
-echo -e "  ${YELLOW}curl http://localhost:8787/health${NC}"
-echo -e "  ${YELLOW}curl -X POST http://localhost:8787/ask -H \"Authorization: Bearer \$TOKEN\" -H \"Content-Type: application/json\" -d '{\"message\": \"Bonjour !\"}'${NC}"
+echo -e "${CYAN}Pour demarrer ULY API :${NC}"
+echo ""
+echo -e "  ${BOLD}./.uly/integrations/cloudflare-tunnel/run.sh${NC}"
+echo ""
+echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo ""
+echo -e "${CYAN}Test local (une fois le service demarre) :${NC}"
+echo ""
+echo -e "  ${BLUE}curl http://localhost:8787/health${NC}"
+echo ""
+echo -e "${CYAN}Test avec authentification :${NC}"
+echo ""
+echo -e "  ${BLUE}curl -X POST http://localhost:8787/ask \\${NC}"
+echo -e "  ${BLUE}  -H \"Authorization: Bearer $API_TOKEN\" \\${NC}"
+echo -e "  ${BLUE}  -H \"Content-Type: application/json\" \\${NC}"
+echo -e "  ${BLUE}  -d '{\"message\": \"Bonjour !\"}'${NC}"
+echo ""
+echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo ""
+echo -e "${CYAN}Configuration N8N :${NC}"
+echo ""
+echo "  1. Ajoutez un noeud HTTP Request"
+echo "  2. Methode : POST"
+echo "  3. URL : [votre URL tunnel]/ask"
+echo "  4. Authentication : Header Auth"
+echo "     - Header Name  : Authorization"
+echo "     - Header Value : Bearer $API_TOKEN"
+echo "  5. Body : { \"message\": \"{{ \$json.input }}\" }"
 echo ""
 echo -e "${GREEN}Vous etes pret !${NC}"
 echo ""
