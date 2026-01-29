@@ -229,47 +229,54 @@ async def call_claude(
         # Utiliser le session_id quotidien si non fourni
         effective_session_id = session_id or get_daily_session_id()
 
-        # Construire les arguments avec session quotidienne
-        # --session-id crée ou continue une session avec cet UUID
-        args = ["claude", "-p", message, "--session-id", effective_session_id]
+        # Essayer d'abord --resume (session existe)
+        # Si échec, utiliser --session-id (créer nouvelle session)
+        for attempt, session_flag in enumerate(["--resume", "--session-id"]):
+            args = ["claude", "-p", message, session_flag, effective_session_id]
 
-        # Créer le process Claude Code
-        process = await asyncio.create_subprocess_exec(
-            *args,
-            cwd=str(ULY_ROOT),
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-            env={**os.environ, "NO_COLOR": "1"}  # Désactiver les couleurs
-        )
-
-        # Attendre la réponse avec timeout
-        try:
-            stdout, stderr = await asyncio.wait_for(
-                process.communicate(),
-                timeout=timeout
-            )
-        except asyncio.TimeoutError:
-            process.kill()
-            await process.wait()
-            raise HTTPException(
-                status_code=504,
-                detail=f"Timeout après {timeout} secondes"
+            process = await asyncio.create_subprocess_exec(
+                *args,
+                cwd=str(ULY_ROOT),
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                env={**os.environ, "NO_COLOR": "1"}
             )
 
-        if process.returncode != 0:
-            error_msg = stderr.decode().strip() if stderr else "Erreur inconnue"
-            logger.error(f"Claude Code a retourné une erreur: {error_msg}")
-            raise HTTPException(
-                status_code=502,
-                detail=f"Erreur Claude Code: {error_msg}"
-            )
+            try:
+                stdout, stderr = await asyncio.wait_for(
+                    process.communicate(),
+                    timeout=timeout
+                )
+            except asyncio.TimeoutError:
+                process.kill()
+                await process.wait()
+                raise HTTPException(
+                    status_code=504,
+                    detail=f"Timeout après {timeout} secondes"
+                )
+
+            error_msg = stderr.decode().strip() if stderr else ""
+
+            # Si --resume échoue car session n'existe pas, essayer --session-id
+            if process.returncode != 0 and "No conversation found" in error_msg and attempt == 0:
+                logger.info(f"Session {effective_session_id} n'existe pas, création...")
+                continue
+
+            if process.returncode != 0:
+                logger.error(f"Claude Code a retourné une erreur: {error_msg}")
+                raise HTTPException(
+                    status_code=502,
+                    detail=f"Erreur Claude Code: {error_msg}"
+                )
+
+            # Succès
+            break
 
         response = stdout.decode().strip()
 
         if not response:
             response = "Je n'ai pas pu générer de réponse."
 
-        # Retourner le session_id utilisé
         return response, effective_session_id
 
     except HTTPException:
