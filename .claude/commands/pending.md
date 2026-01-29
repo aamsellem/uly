@@ -20,13 +20,13 @@ Les commentaires HTML `<!-- -->` ne comptent PAS comme des tâches.
 **RÈGLE ABSOLUE : Si zéro tâche `- [ ]` → tu réponds avec RIEN. Pas un mot. Pas d'explication. RIEN.**
 
 **Si au moins une tâche `- [ ]` existe :**
-Générer un message de relance avec ta personnalité. Exemple :
+Générer un message de relance demandant l'avancement, avec ta personnalité. Exemple :
 ```
-J'attends toujours ton retour sur :
+Alors, où t'en es sur :
 • Validation du design
-• Retour sur l'API
+• Refonte de l'API
 
-Tu me fais signe ?
+C'est avancé ? Bloqué ? Terminé ? Fais-moi un point !
 ```
 
 ## Exemples
