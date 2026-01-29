@@ -515,6 +515,7 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+DIM='\033[2m'
 NC='\033[0m'
 
 # Charger la configuration
@@ -585,14 +586,31 @@ if [ "$USE_NAMED_TUNNEL" = "true" ]; then
         TUNNEL_URL="https://$TUNNEL_NAME.cfargotunnel.com"
     fi
 else
-    # Quick tunnel
-    cloudflared tunnel --url http://localhost:${SERVER_PORT:-8787} 2>&1 | tee /tmp/cloudflared.log &
+    # Quick tunnel - rediriger stdout ET stderr vers le fichier log
+    cloudflared tunnel --url http://localhost:${SERVER_PORT:-8787} > /tmp/cloudflared.log 2>&1 &
     TUNNEL_PID=$!
 
-    # Attendre et extraire l'URL
-    echo "  Attente de l'URL du tunnel..."
-    sleep 5
-    TUNNEL_URL=$(grep -o 'https://[^ ]*\.trycloudflare\.com' /tmp/cloudflared.log | head -1)
+    # Attendre et extraire l'URL (avec retry car cloudflared prend du temps)
+    echo -e "  ${DIM}Attente de l'URL du tunnel...${NC}"
+    TUNNEL_URL=""
+    for i in {1..30}; do
+        TUNNEL_URL=$(grep -o 'https://[a-zA-Z0-9-]*\.trycloudflare\.com' /tmp/cloudflared.log 2>/dev/null | head -1)
+        if [ -n "$TUNNEL_URL" ]; then
+            break
+        fi
+        sleep 1
+        echo -ne "\r  ${DIM}Attente de l'URL du tunnel... ${i}s${NC}  "
+    done
+    echo ""
+
+    if [ -z "$TUNNEL_URL" ]; then
+        echo -e "${YELLOW}! URL non detectee automatiquement${NC}"
+        echo "  Regardez la sortie cloudflared ci-dessous pour trouver l'URL :"
+        echo ""
+        cat /tmp/cloudflared.log | grep -i "https://" | head -5
+        echo ""
+        TUNNEL_URL="[voir ci-dessus]"
+    fi
 fi
 
 echo ""
