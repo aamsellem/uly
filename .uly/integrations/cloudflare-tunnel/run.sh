@@ -15,7 +15,11 @@ NC='\033[0m'
 
 # Paramètres
 N8N_HOSTNAME="${1:-$N8N_HOSTNAME}"
-ULY_USER_NAME="${2:-$ULY_USER_NAME}"
+
+# Récupérer le nom de l'utilisateur automatiquement
+if [ -z "$ULY_USER_NAME" ]; then
+    ULY_USER_NAME=$(git config user.name 2>/dev/null || id -F 2>/dev/null || echo "$USER")
+fi
 
 echo ""
 echo -e "${BLUE}========================================${NC}"
