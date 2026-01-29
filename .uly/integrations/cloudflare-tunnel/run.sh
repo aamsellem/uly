@@ -13,6 +13,10 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
+# Paramètres
+N8N_HOSTNAME="${1:-$N8N_HOSTNAME}"
+ULY_USER_NAME="${2:-$ULY_USER_NAME}"
+
 echo ""
 echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}  ULY API - Démarrage${NC}"
@@ -61,6 +65,34 @@ if command -v cloudflared &> /dev/null && [ -n "$CLOUDFLARE_TUNNEL_NAME" ]; then
     cloudflared tunnel run "$CLOUDFLARE_TUNNEL_NAME" &
     TUNNEL_PID=$!
     echo -e "${GREEN}✓ Tunnel démarré (PID: $TUNNEL_PID)${NC}"
+
+    # Récupérer le hostname Cloudflare
+    sleep 3  # Attendre que le tunnel soit établi
+    CLOUDFLARE_HOSTNAME=$(cloudflared tunnel info "$CLOUDFLARE_TUNNEL_NAME" 2>/dev/null | grep -oE '[a-zA-Z0-9-]+\.trycloudflare\.com' | head -1)
+
+    # Si hostname non trouvé via info, essayer avec la config DNS
+    if [ -z "$CLOUDFLARE_HOSTNAME" ]; then
+        CLOUDFLARE_HOSTNAME=$(cloudflared tunnel route dns "$CLOUDFLARE_TUNNEL_NAME" 2>/dev/null | grep -oE '[a-zA-Z0-9.-]+\.[a-zA-Z]+' | head -1)
+    fi
+
+    # Enregistrer auprès de N8N si hostname fourni
+    if [ -n "$N8N_HOSTNAME" ] && [ -n "$CLOUDFLARE_HOSTNAME" ]; then
+        echo -e "${BLUE}Enregistrement auprès de N8N...${NC}"
+
+        REGISTER_RESPONSE=$(curl -s -X POST "https://${N8N_HOSTNAME}/webhook/uly-register" \
+            -H "Content-Type: application/json" \
+            -d "{\"hostname\": \"${CLOUDFLARE_HOSTNAME}\", \"name\": \"${ULY_USER_NAME}\", \"token\": \"${ULY_API_TOKEN}\"}" \
+            2>/dev/null)
+
+        if [ $? -eq 0 ]; then
+            echo -e "${GREEN}✓ Enregistré auprès de N8N${NC}"
+            echo -e "  Hostname: ${YELLOW}${CLOUDFLARE_HOSTNAME}${NC}"
+        else
+            echo -e "${YELLOW}⚠ Échec de l'enregistrement N8N${NC}"
+        fi
+    elif [ -n "$N8N_HOSTNAME" ] && [ -z "$CLOUDFLARE_HOSTNAME" ]; then
+        echo -e "${YELLOW}⚠ Hostname Cloudflare non trouvé, enregistrement N8N ignoré${NC}"
+    fi
     echo ""
 fi
 
