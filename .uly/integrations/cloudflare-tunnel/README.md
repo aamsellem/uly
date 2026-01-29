@@ -2,27 +2,46 @@
 
 Exposez ULY sur Internet via un tunnel HTTPS sécurisé. Parfait pour les automatisations avec N8N, Make, ou n'importe quel webhook.
 
-## Ce Que Ca Fait
+## Ce Que Ça Fait
 
-- **Endpoint HTTPS public** - ULY accessible depuis n'importe ou dans le monde
-- **Tunnel securise** - Pas de ports ouverts, pas de config firewall, zero trust
-- **API REST simple** - Envoyez des requetes, recevez des reponses de Claude
-- **Authentification par token** - Seuls vos outils peuvent acceder
-- **Compatible N8N, Make, Zapier** - Integrez ULY dans vos workflows d'automatisation
+- **Endpoint HTTPS public** — ULY accessible depuis n'importe où
+- **Appelle Claude Code local** — Utilise votre ULY avec tout son contexte (personnalité, état, objectifs)
+- **Tunnel sécurisé** — Pas de ports ouverts, pas de config firewall
+- **Authentification par token** — Seuls vos outils peuvent accéder
+- **Compatible N8N, Make, Zapier** — Intégrez ULY dans vos workflows
+
+## Comment Ça Marche
+
+```
+Internet                 Cloudflare              Votre Machine
+   |                         |                        |
+[N8N/Make/etc]               |                        |
+   |                         |                        |
+   +--> HTTPS Request --> [Tunnel] --> [server.py] --> [Claude Code]
+                                                            |
+                                                      [ULY Workspace]
+                                                      - Personnalité
+                                                      - État actuel
+                                                      - Objectifs
+                                                      - Sessions
+```
+
+**Le serveur appelle Claude Code localement**, pas l'API Anthropic directement. Ça veut dire :
+- Votre personnalité ULY est respectée (Le Pote Sarcastique, Le Butler British, etc.)
+- Le contexte complet est utilisé (état, objectifs, historique)
+- Les commandes `/uly`, `/update`, `/end` fonctionnent
 
 ## Pour Qui C'est
 
-- **Utilisateurs N8N** qui veulent integrer Claude dans leurs workflows
-- **Developpeurs** qui construisent des automatisations avec des webhooks
-- **Equipes** qui veulent un assistant IA accessible a distance
-- **Power users** qui veulent controler ULY depuis leur telephone ou tablette
+- **Utilisateurs N8N** qui veulent ULY dans leurs workflows
+- **Power users** qui veulent contrôler ULY depuis leur téléphone
+- **Équipes** qui veulent un assistant IA accessible à distance
 
-## Prerequis
+## Prérequis
 
-- **Compte Cloudflare** (gratuit) - [cloudflare.com](https://dash.cloudflare.com/sign-up)
-- **cloudflared** installe - Le CLI sera installe automatiquement si manquant
-- **Python 3.10+** - Pour le serveur API
-- **Cle API Anthropic** - `ANTHROPIC_API_KEY` dans votre environnement
+- **Claude Code** installé et configuré (`claude` doit marcher dans le terminal)
+- **Compte Cloudflare** (gratuit) — [cloudflare.com](https://dash.cloudflare.com/sign-up)
+- **Python 3.10+** — Pour le serveur API
 
 ## Configuration
 
@@ -30,49 +49,70 @@ Exposez ULY sur Internet via un tunnel HTTPS sécurisé. Parfait pour les automa
 ./.uly/integrations/cloudflare-tunnel/setup.sh
 ```
 
-Le script vous guidera a travers :
-1. Installation de `cloudflared` (si necessaire)
-2. Connexion a votre compte Cloudflare
-3. Creation d'un tunnel nomme
-4. Generation d'un token d'authentification securise
-5. Configuration du serveur API local
+Le script va :
+1. Installer `cloudflared` (si nécessaire)
+2. Créer un tunnel Cloudflare
+3. Générer un token d'authentification sécurisé
+4. Configurer le serveur API
 
 ## Lancer le Service
-
-Apres la configuration :
 
 ```bash
 ./.uly/integrations/cloudflare-tunnel/run.sh
 ```
 
-Cela demarre :
-1. Le serveur API local (port 8787)
-2. Le tunnel Cloudflare qui expose votre endpoint
-
 Vous obtenez une URL comme : `https://votre-tunnel.trycloudflare.com`
 
-## Utilisation avec N8N
+## API Endpoints
 
-### Endpoint disponible
-
-| Methode | Endpoint | Description |
+| Méthode | Endpoint | Description |
 |---------|----------|-------------|
-| POST | `/ask` | Envoyer une question a Claude |
-| GET | `/health` | Verifier que le service fonctionne |
+| `POST` | `/ask` | Envoyer un message à ULY |
+| `POST` | `/command/{cmd}` | Exécuter une commande (`/uly`, `/update`, `/end`, `/report`) |
+| `GET` | `/health` | Vérifier que le service fonctionne |
 
-### Exemple de requete
+### Exemple : Envoyer un message
 
 ```bash
 curl -X POST https://votre-tunnel.trycloudflare.com/ask \
   -H "Authorization: Bearer VOTRE_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"message": "Quel est mon etat actuel?"}'
+  -d '{"message": "Quel est mon état actuel?"}'
 ```
 
-### Configuration N8N
+**Réponse :**
+```json
+{
+  "response": "Salut ! D'après ton état actuel...",
+  "duration_ms": 2340
+}
+```
 
-1. **Ajouter un noeud HTTP Request**
-2. **Methode** : POST
+### Exemple : Exécuter /uly (briefing)
+
+```bash
+curl -X POST https://votre-tunnel.trycloudflare.com/command/uly \
+  -H "Authorization: Bearer VOTRE_TOKEN"
+```
+
+### Paramètres `/ask`
+
+```json
+{
+  "message": "Ajoute une tâche : finir le rapport",
+  "timeout": 120
+}
+```
+
+| Paramètre | Type | Description |
+|-----------|------|-------------|
+| `message` | string | Le message à envoyer (requis) |
+| `timeout` | int | Timeout en secondes (défaut: 120) |
+
+## Configuration N8N
+
+1. **Ajouter un nœud HTTP Request**
+2. **Méthode** : POST
 3. **URL** : `https://votre-tunnel.trycloudflare.com/ask`
 4. **Authentication** : Header Auth
    - Name: `Authorization`
@@ -80,74 +120,53 @@ curl -X POST https://votre-tunnel.trycloudflare.com/ask \
 5. **Body** :
    ```json
    {
-     "message": "Votre question ici"
+     "message": "{{ $json.input }}"
    }
    ```
 
-### Parametres avances
-
-```json
-{
-  "message": "Analyse ce texte",
-  "context": "Tu es un assistant specialise en marketing",
-  "workspace_access": true,
-  "max_tokens": 2048
-}
-```
-
-| Parametre | Type | Description |
-|-----------|------|-------------|
-| `message` | string | La question ou instruction (requis) |
-| `context` | string | Contexte supplementaire pour Claude |
-| `workspace_access` | bool | Autoriser l'acces aux fichiers ULY (defaut: true) |
-| `max_tokens` | int | Limite de tokens pour la reponse (defaut: 4096) |
-
-## Securite
+## Sécurité
 
 ### Authentification
 
-Chaque requete doit inclure le header `Authorization` :
-
+Chaque requête doit inclure le header :
 ```
 Authorization: Bearer VOTRE_TOKEN
 ```
 
-Le token est genere automatiquement lors de la configuration et sauvegarde dans `.env`.
+Le token est dans `.uly/integrations/cloudflare-tunnel/.env`
 
 ### Bonnes pratiques
 
-- **Ne partagez jamais votre token** - Traitez-le comme un mot de passe
-- **Utilisez HTTPS uniquement** - Le tunnel Cloudflare force HTTPS
-- **Limitez les IPs si possible** - Configurez Cloudflare Access pour plus de controle
-- **Regenerez le token** si compromis : relancez `setup.sh`
-
-### Cloudflare Access (optionnel)
-
-Pour une securite renforcee, configurez Cloudflare Access :
-
-1. Allez sur [Cloudflare Zero Trust](https://one.dash.cloudflare.com/)
-2. Applications > Add Application > Self-hosted
-3. Ajoutez votre domaine de tunnel
-4. Configurez les regles d'acces (email, IP, etc.)
+- **Ne partagez jamais votre token**
+- **Le tunnel force HTTPS** — Connexion chiffrée
+- **Rate limiting** — 100 requêtes/minute max
+- **Regénérez le token si compromis** : relancez `setup.sh`
 
 ## Zone de Danger
 
-Cette integration expose ULY sur Internet :
-
-| Action | Niveau de Risque | Qui Est Affecte |
-|--------|-----------------|-----------------|
-| Repondre aux requetes API | **Moyen** | Consomme vos credits Anthropic |
-| Lire fichiers workspace | Moyen | Expose potentiellement des donnees sensibles |
-| Ecrire fichiers workspace | **Eleve** | Peut modifier votre espace de travail |
+| Action | Niveau de Risque | Impact |
+|--------|-----------------|--------|
+| Répondre aux requêtes | Moyen | Utilise Claude Code local |
+| Lire workspace | Moyen | Accès à vos données ULY |
+| Écrire workspace | **Élevé** | Peut modifier vos fichiers |
 | Tunnel public | Moyen | Accessible depuis Internet |
 
-**Mesures de protection incluses :**
-- Authentification obligatoire par token
-- Rate limiting (100 requetes/minute)
-- Logging de toutes les requetes
-- Sandboxing des operations fichiers
+**Protections incluses :**
+- Token obligatoire
+- Rate limiting
+- Logging des requêtes
 
-## Depannage
+## Dépannage
+
+### "Claude Code n'est pas disponible"
+
+```bash
+# Vérifier l'installation
+claude --version
+
+# Si pas installé
+npm install -g @anthropic-ai/claude-code
+```
 
 ### "cloudflared not found"
 
@@ -160,55 +179,25 @@ curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/relea
 sudo dpkg -i cloudflared.deb
 ```
 
-### "Tunnel connection failed"
-
-1. Verifiez votre connexion Internet
-2. Reessayez `cloudflared tunnel login`
-3. Supprimez et recreez le tunnel :
-   ```bash
-   cloudflared tunnel delete uly-tunnel
-   ./.uly/integrations/cloudflare-tunnel/setup.sh
-   ```
-
 ### "Unauthorized" (401)
 
-- Verifiez que le token dans votre requete correspond a celui dans `.env`
-- Assurez-vous du format : `Bearer VOTRE_TOKEN` (avec l'espace)
+- Vérifiez le token : `Bearer VOTRE_TOKEN` (avec l'espace)
+- Token dans `.uly/integrations/cloudflare-tunnel/.env`
 
-### "Service unavailable" (503)
+### Timeout
 
-- Le serveur API local n'est pas demarre
-- Lancez : `./.uly/integrations/cloudflare-tunnel/run.sh`
-
-### Le serveur demarre mais pas de reponses
-
-- Verifiez que `ANTHROPIC_API_KEY` est defini
-- Testez l'API localement : `curl http://localhost:8787/health`
+- Augmentez le timeout dans la requête : `"timeout": 180`
+- Claude Code peut être lent sur les grosses requêtes
 
 ## Fichiers
 
-| Fichier | Role |
+| Fichier | Rôle |
 |---------|------|
-| `server.py` | Serveur API FastAPI |
-| `setup.sh` | Script de configuration |
-| `run.sh` | Script de demarrage |
-| `.env` | Configuration (tokens, etc.) |
-| `config.yml` | Configuration du tunnel Cloudflare |
-
-## Architecture
-
-```
-Internet                 Cloudflare              Votre Machine
-   |                         |                        |
-[N8N/Make/etc]               |                        |
-   |                         |                        |
-   +--> HTTPS Request --> [Tunnel] --> [server.py:8787]
-                                              |
-                                        [Claude API]
-                                              |
-                                        [ULY Workspace]
-```
+| `server.py` | Serveur API qui appelle Claude Code |
+| `setup.sh` | Configuration du tunnel |
+| `run.sh` | Démarrage du service |
+| `.env` | Tokens et config |
 
 ---
 
-*Contribue par ULY Team*
+*ULY Team*

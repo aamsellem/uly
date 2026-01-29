@@ -1,13 +1,14 @@
 """Serveur API ULY pour Cloudflare Tunnel.
 
-Expose ULY via une API REST securisee pour integration avec N8N,
-Make, Zapier, et autres outils d'automatisation.
+Expose ULY via une API REST sécurisée.
+Appelle Claude Code localement avec tout le contexte ULY.
 """
 
+import asyncio
 import json
 import logging
 import os
-import re
+import subprocess
 import time
 from collections import defaultdict
 from datetime import datetime
@@ -21,8 +22,6 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import uvicorn
 
-import anthropic
-
 # Configuration des chemins
 SCRIPT_DIR = Path(__file__).parent
 ULY_ROOT = Path(os.environ.get("ULY_WORKSPACE", SCRIPT_DIR.parent.parent.parent))
@@ -33,11 +32,10 @@ load_dotenv(ULY_ROOT / ".env")
 
 # Configuration
 API_TOKEN = os.environ.get("ULY_API_TOKEN", "")
-SERVER_PORT = int(os.environ.get("SERVER_PORT", "8787"))
-CLAUDE_MD_PATH = ULY_ROOT / "CLAUDE.md"
+SERVER_PORT = int(os.environ.get("ULY_SERVER_PORT", "8787"))
 
 # Rate limiting
-RATE_LIMIT = 100  # requetes par minute
+RATE_LIMIT = 100  # requêtes par minute
 rate_limit_store = defaultdict(list)
 
 # Logging
@@ -50,7 +48,7 @@ logger = logging.getLogger(__name__)
 # Application FastAPI
 app = FastAPI(
     title="ULY API",
-    description="API pour interagir avec ULY via Cloudflare Tunnel",
+    description="API pour interagir avec ULY (Claude Code) via Cloudflare Tunnel",
     version="1.0.0",
 )
 
@@ -65,282 +63,47 @@ app.add_middleware(
 
 
 # ========================================
-# Modeles Pydantic
+# Modèles Pydantic
 # ========================================
 
 class AskRequest(BaseModel):
-    """Requete pour poser une question a Claude."""
+    """Requête pour poser une question à ULY."""
     message: str
-    context: Optional[str] = None
-    workspace_access: bool = True
-    max_tokens: int = 4096
+    conversation_id: Optional[str] = None
+    timeout: int = 120  # secondes
 
 
 class AskResponse(BaseModel):
-    """Reponse de Claude."""
+    """Réponse de ULY."""
     response: str
-    files_accessed: list[str] = []
-    files_modified: list[str] = []
-    tokens_used: int = 0
+    conversation_id: Optional[str] = None
+    duration_ms: int = 0
 
 
 class HealthResponse(BaseModel):
-    """Statut de sante du service."""
+    """Statut de santé du service."""
     status: str
     timestamp: str
     workspace: str
+    claude_available: bool
     version: str
 
 
 # ========================================
-# Outils pour Claude
-# ========================================
-
-TOOLS = [
-    {
-        "name": "read_file",
-        "description": "Lire le contenu d'un fichier dans l'espace de travail ULY.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "Chemin relatif au workspace (ex: 'state/current.md', 'content/notes.md')"
-                }
-            },
-            "required": ["path"]
-        }
-    },
-    {
-        "name": "write_file",
-        "description": "Creer ou mettre a jour un fichier dans l'espace de travail ULY.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "Chemin relatif au workspace"
-                },
-                "content": {
-                    "type": "string",
-                    "description": "Contenu a ecrire"
-                }
-            },
-            "required": ["path", "content"]
-        }
-    },
-    {
-        "name": "search_files",
-        "description": "Rechercher des fichiers par nom ou contenu.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "query": {
-                    "type": "string",
-                    "description": "Terme de recherche"
-                },
-                "file_pattern": {
-                    "type": "string",
-                    "description": "Pattern glob (defaut: **/*.md)",
-                    "default": "**/*.md"
-                }
-            },
-            "required": ["query"]
-        }
-    },
-    {
-        "name": "list_directory",
-        "description": "Lister le contenu d'un repertoire.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "Chemin du repertoire (defaut: racine)",
-                    "default": "."
-                }
-            },
-            "required": []
-        }
-    },
-    {
-        "name": "append_to_file",
-        "description": "Ajouter du contenu a la fin d'un fichier existant.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "Chemin relatif au workspace"
-                },
-                "content": {
-                    "type": "string",
-                    "description": "Contenu a ajouter"
-                }
-            },
-            "required": ["path", "content"]
-        }
-    }
-]
-
-
-class ToolExecutor:
-    """Executeur d'outils pour Claude."""
-
-    def __init__(self, workspace: Path, allow_write: bool = True):
-        self.workspace = workspace
-        self.allow_write = allow_write
-        self.files_accessed = []
-        self.files_modified = []
-
-    def _validate_path(self, path: str) -> Path:
-        """Valide et resout un chemin de fichier."""
-        file_path = self.workspace / path
-        try:
-            file_path.resolve().relative_to(self.workspace.resolve())
-        except ValueError:
-            raise ValueError(f"Acces refuse: chemin hors du workspace - {path}")
-        return file_path
-
-    def execute(self, tool_name: str, tool_input: dict) -> str:
-        """Execute un outil et retourne le resultat."""
-        try:
-            if tool_name == "read_file":
-                return self._read_file(tool_input["path"])
-            elif tool_name == "write_file":
-                return self._write_file(tool_input["path"], tool_input["content"])
-            elif tool_name == "search_files":
-                return self._search_files(
-                    tool_input["query"],
-                    tool_input.get("file_pattern", "**/*.md")
-                )
-            elif tool_name == "list_directory":
-                return self._list_directory(tool_input.get("path", "."))
-            elif tool_name == "append_to_file":
-                return self._append_to_file(tool_input["path"], tool_input["content"])
-            else:
-                return f"Outil inconnu: {tool_name}"
-        except Exception as e:
-            logger.error(f"Erreur d'execution de l'outil {tool_name}: {e}")
-            return f"Erreur: {str(e)}"
-
-    def _read_file(self, path: str) -> str:
-        """Lire un fichier."""
-        file_path = self._validate_path(path)
-        if not file_path.exists():
-            return f"Fichier non trouve: {path}"
-        if not file_path.is_file():
-            return f"N'est pas un fichier: {path}"
-
-        self.files_accessed.append(path)
-        content = file_path.read_text()
-
-        if len(content) > 10000:
-            return f"Contenu (tronque, {len(content)} caracteres total):\n{content[:10000]}..."
-        return content
-
-    def _write_file(self, path: str, content: str) -> str:
-        """Ecrire dans un fichier."""
-        if not self.allow_write:
-            return "Erreur: l'ecriture de fichiers est desactivee pour cette requete"
-
-        file_path = self._validate_path(path)
-        file_path.parent.mkdir(parents=True, exist_ok=True)
-        file_path.write_text(content)
-        self.files_modified.append(path)
-        return f"Fichier ecrit: {path} ({len(content)} caracteres)"
-
-    def _search_files(self, query: str, file_pattern: str = "**/*.md") -> str:
-        """Rechercher dans les fichiers."""
-        results = []
-        query_lower = query.lower()
-
-        for path in self.workspace.glob(file_pattern):
-            if not path.is_file():
-                continue
-            # Ignorer les fichiers caches et venv
-            if any(part.startswith('.') or part in ('venv', 'node_modules', '__pycache__')
-                   for part in path.parts):
-                continue
-
-            rel_path = path.relative_to(self.workspace)
-
-            # Verifier le nom du fichier
-            if query_lower in path.name.lower():
-                results.append(f"* {rel_path} (nom)")
-                self.files_accessed.append(str(rel_path))
-                continue
-
-            # Verifier le contenu
-            try:
-                if path.stat().st_size < 100000:
-                    content = path.read_text()
-                    if query_lower in content.lower():
-                        idx = content.lower().find(query_lower)
-                        start = max(0, idx - 40)
-                        end = min(len(content), idx + len(query) + 40)
-                        snippet = content[start:end].replace('\n', ' ')
-                        results.append(f"* {rel_path}: ...{snippet}...")
-                        self.files_accessed.append(str(rel_path))
-            except Exception:
-                pass
-
-        if not results:
-            return f"Aucun resultat pour '{query}'"
-
-        return f"Resultats ({len(results)}):\n" + "\n".join(results[:15])
-
-    def _list_directory(self, path: str = ".") -> str:
-        """Lister un repertoire."""
-        dir_path = self._validate_path(path)
-        if not dir_path.exists():
-            return f"Repertoire non trouve: {path}"
-        if not dir_path.is_dir():
-            return f"N'est pas un repertoire: {path}"
-
-        items = []
-        for item in sorted(dir_path.iterdir()):
-            if item.name.startswith('.') or item.name in ('venv', 'node_modules', '__pycache__'):
-                continue
-            if item.is_dir():
-                items.append(f"[dir] {item.name}/")
-            else:
-                items.append(f"[file] {item.name}")
-
-        return f"Contenu de {path}:\n" + "\n".join(items[:30])
-
-    def _append_to_file(self, path: str, content: str) -> str:
-        """Ajouter a un fichier."""
-        if not self.allow_write:
-            return "Erreur: l'ecriture de fichiers est desactivee pour cette requete"
-
-        file_path = self._validate_path(path)
-        if file_path.exists():
-            existing = file_path.read_text()
-            file_path.write_text(existing + "\n" + content)
-        else:
-            file_path.parent.mkdir(parents=True, exist_ok=True)
-            file_path.write_text(content)
-
-        self.files_modified.append(path)
-        return f"Contenu ajoute a {path} ({len(content)} caracteres)"
-
-
-# ========================================
-# Middleware et securite
+# Utilitaires
 # ========================================
 
 def check_rate_limit(client_ip: str) -> bool:
-    """Verifie le rate limiting."""
+    """Vérifie le rate limiting."""
     now = time.time()
     minute_ago = now - 60
 
-    # Nettoyer les anciennes entrees
+    # Nettoyer les anciennes entrées
     rate_limit_store[client_ip] = [
         t for t in rate_limit_store[client_ip] if t > minute_ago
     ]
 
-    # Verifier la limite
+    # Vérifier la limite
     if len(rate_limit_store[client_ip]) >= RATE_LIMIT:
         return False
 
@@ -349,9 +112,9 @@ def check_rate_limit(client_ip: str) -> bool:
 
 
 def verify_token(authorization: str = Header(None)) -> bool:
-    """Verifie le token d'authentification."""
+    """Vérifie le token d'authentification."""
     if not API_TOKEN:
-        logger.warning("Aucun token API configure - acces ouvert!")
+        logger.warning("Aucun token API configuré - accès ouvert!")
         return True
 
     if not authorization:
@@ -360,7 +123,10 @@ def verify_token(authorization: str = Header(None)) -> bool:
     # Format: "Bearer <token>"
     parts = authorization.split()
     if len(parts) != 2 or parts[0].lower() != "bearer":
-        raise HTTPException(status_code=401, detail="Format d'authentification invalide. Utilisez: Bearer <token>")
+        raise HTTPException(
+            status_code=401,
+            detail="Format d'authentification invalide. Utilisez: Bearer <token>"
+        )
 
     if parts[1] != API_TOKEN:
         raise HTTPException(status_code=401, detail="Token invalide")
@@ -368,49 +134,79 @@ def verify_token(authorization: str = Header(None)) -> bool:
     return True
 
 
-def build_system_prompt() -> str:
-    """Construit le prompt systeme avec le contexte ULY."""
-    today = datetime.now().strftime("%Y-%m-%d")
+def check_claude_available() -> bool:
+    """Vérifie si Claude Code est disponible."""
+    try:
+        result = subprocess.run(
+            ["claude", "--version"],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        return result.returncode == 0
+    except Exception:
+        return False
 
-    prompt = f"""Tu es ULY, un assistant IA accessible via API.
 
-**Date du jour**: {today}
+async def call_claude(message: str, timeout: int = 120) -> str:
+    """
+    Appelle Claude Code en mode non-interactif.
+    Utilise le workspace ULY avec tout son contexte.
+    """
+    try:
+        # Créer le process Claude Code
+        process = await asyncio.create_subprocess_exec(
+            "claude",
+            "-p", message,  # Mode print (non-interactif)
+            "--no-spinner",  # Pas de spinner
+            cwd=str(ULY_ROOT),
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            env={**os.environ, "NO_COLOR": "1"}  # Désactiver les couleurs
+        )
 
-## Tes Capacites
-
-Tu as acces a des outils pour :
-- **Lire des fichiers** de l'espace de travail ULY
-- **Ecrire/creer des fichiers** pour sauvegarder du contenu
-- **Rechercher** des fichiers par nom ou contenu
-- **Lister** le contenu des repertoires
-
-## Structure du Workspace
-
-- `state/` - Etat actuel et objectifs (current.md, goals.md)
-- `content/` - Notes, brouillons, contenu
-- `sessions/` - Logs des sessions
-- `skills/` - Skills personnalises
-
-## Consignes
-
-- Sois concis et direct
-- Utilise les outils quand c'est pertinent
-- Si on te demande l'etat actuel, lis state/current.md
-- Reponds toujours en francais sauf indication contraire
-"""
-
-    # Ajouter le contexte de CLAUDE.md si disponible
-    if CLAUDE_MD_PATH.exists():
+        # Attendre la réponse avec timeout
         try:
-            claude_md = CLAUDE_MD_PATH.read_text()
-            if "## User Profile" in claude_md:
-                match = re.search(r"## User Profile.*?(?=##|\Z)", claude_md, re.DOTALL)
-                if match:
-                    prompt += f"\n## Contexte Utilisateur\n{match.group(0)[:800]}"
-        except Exception:
-            pass
+            stdout, stderr = await asyncio.wait_for(
+                process.communicate(),
+                timeout=timeout
+            )
+        except asyncio.TimeoutError:
+            process.kill()
+            await process.wait()
+            raise HTTPException(
+                status_code=504,
+                detail=f"Timeout après {timeout} secondes"
+            )
 
-    return prompt
+        if process.returncode != 0:
+            error_msg = stderr.decode().strip() if stderr else "Erreur inconnue"
+            logger.error(f"Claude Code a retourné une erreur: {error_msg}")
+            raise HTTPException(
+                status_code=502,
+                detail=f"Erreur Claude Code: {error_msg}"
+            )
+
+        response = stdout.decode().strip()
+
+        if not response:
+            return "Je n'ai pas pu générer de réponse."
+
+        return response
+
+    except HTTPException:
+        raise
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=503,
+            detail="Claude Code n'est pas installé ou accessible"
+        )
+    except Exception as e:
+        logger.error(f"Erreur lors de l'appel à Claude: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erreur serveur: {str(e)}"
+        )
 
 
 # ========================================
@@ -423,20 +219,25 @@ async def root():
     return {
         "service": "ULY API",
         "version": "1.0.0",
+        "description": "API pour interagir avec ULY (Claude Code local)",
         "endpoints": {
-            "POST /ask": "Poser une question a Claude",
-            "GET /health": "Verifier le statut du service"
-        }
+            "POST /ask": "Envoyer un message à ULY",
+            "GET /health": "Vérifier le statut du service"
+        },
+        "documentation": "/docs"
     }
 
 
 @app.get("/health", response_model=HealthResponse)
 async def health():
-    """Verification de sante du service."""
+    """Vérification de santé du service."""
+    claude_ok = check_claude_available()
+
     return HealthResponse(
-        status="healthy",
+        status="healthy" if claude_ok else "degraded",
         timestamp=datetime.now().isoformat(),
         workspace=str(ULY_ROOT),
+        claude_available=claude_ok,
         version="1.0.0"
     )
 
@@ -447,118 +248,102 @@ async def ask(
     body: AskRequest,
     authorization: str = Header(None)
 ):
-    """Envoie une question a Claude et retourne la reponse."""
+    """
+    Envoie un message à ULY et retourne la réponse.
 
-    # Verifier l'authentification
+    ULY est Claude Code qui tourne localement avec tout le contexte :
+    - La personnalité configurée
+    - L'état actuel (state/)
+    - Les objectifs
+    - L'historique des sessions
+    """
+
+    # Vérifier l'authentification
     verify_token(authorization)
 
-    # Verifier le rate limiting
-    client_ip = request.client.host
+    # Vérifier le rate limiting
+    client_ip = request.client.host if request.client else "unknown"
     if not check_rate_limit(client_ip):
         raise HTTPException(
             status_code=429,
-            detail="Rate limit depasse. Maximum 100 requetes par minute."
+            detail="Rate limit dépassé. Maximum 100 requêtes par minute."
         )
 
-    # Verifier la cle API Anthropic
-    if not os.environ.get("ANTHROPIC_API_KEY"):
+    logger.info(f"Requête de {client_ip}: {body.message[:100]}...")
+
+    # Mesurer le temps
+    start_time = time.time()
+
+    # Appeler Claude Code
+    response = await call_claude(body.message, timeout=body.timeout)
+
+    # Calculer la durée
+    duration_ms = int((time.time() - start_time) * 1000)
+
+    logger.info(f"Réponse générée en {duration_ms}ms")
+
+    return AskResponse(
+        response=response,
+        conversation_id=body.conversation_id,
+        duration_ms=duration_ms
+    )
+
+
+@app.post("/command/{command}")
+async def run_command(
+    command: str,
+    request: Request,
+    authorization: str = Header(None)
+):
+    """
+    Exécute une commande ULY spécifique.
+
+    Commandes disponibles:
+    - /uly : Démarrer avec briefing
+    - /update : Sauvegarde rapide
+    - /end : Terminer la session
+    - /report : Rapport hebdomadaire
+    """
+
+    verify_token(authorization)
+
+    valid_commands = ["uly", "update", "end", "report", "help"]
+
+    if command not in valid_commands:
         raise HTTPException(
-            status_code=500,
-            detail="ANTHROPIC_API_KEY non configuree sur le serveur"
+            status_code=400,
+            detail=f"Commande inconnue. Commandes valides: {', '.join(valid_commands)}"
         )
 
-    logger.info(f"Requete de {client_ip}: {body.message[:100]}...")
+    logger.info(f"Exécution de la commande /{command}")
 
-    # Preparer les outils
-    tools = TOOLS if body.workspace_access else []
-    executor = ToolExecutor(ULY_ROOT, allow_write=body.workspace_access)
+    start_time = time.time()
+    response = await call_claude(f"/{command}", timeout=180)
+    duration_ms = int((time.time() - start_time) * 1000)
 
-    # Construire le prompt systeme
-    system_prompt = build_system_prompt()
-    if body.context:
-        system_prompt += f"\n\n## Contexte additionnel\n{body.context}"
-
-    # Appel a Claude
-    try:
-        client = anthropic.Anthropic()
-
-        messages = [{"role": "user", "content": body.message}]
-
-        response = client.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=body.max_tokens,
-            system=system_prompt,
-            tools=tools if tools else None,
-            messages=messages,
-        )
-
-        # Boucle d'utilisation d'outils
-        max_iterations = 10
-        iteration = 0
-        total_tokens = response.usage.input_tokens + response.usage.output_tokens
-
-        while response.stop_reason == "tool_use" and iteration < max_iterations:
-            iteration += 1
-            logger.info(f"Iteration d'outil {iteration}/{max_iterations}")
-
-            # Extraire et executer les outils
-            tool_uses = [block for block in response.content if block.type == "tool_use"]
-            tool_results = []
-
-            for tool_use in tool_uses:
-                logger.info(f"Execution de l'outil: {tool_use.name}")
-                result = executor.execute(tool_use.name, tool_use.input)
-                tool_results.append({
-                    "type": "tool_result",
-                    "tool_use_id": tool_use.id,
-                    "content": result,
-                })
-
-            # Continuer la conversation
-            messages.append({"role": "assistant", "content": response.content})
-            messages.append({"role": "user", "content": tool_results})
-
-            response = client.messages.create(
-                model="claude-sonnet-4-20250514",
-                max_tokens=body.max_tokens,
-                system=system_prompt,
-                tools=tools,
-                messages=messages,
-            )
-
-            total_tokens += response.usage.input_tokens + response.usage.output_tokens
-
-        # Extraire la reponse finale
-        text_blocks = [block.text for block in response.content if hasattr(block, 'text')]
-        final_response = "\n".join(text_blocks) if text_blocks else "Tache terminee."
-
-        logger.info(f"Reponse generee ({total_tokens} tokens)")
-
-        return AskResponse(
-            response=final_response,
-            files_accessed=list(set(executor.files_accessed)),
-            files_modified=list(set(executor.files_modified)),
-            tokens_used=total_tokens
-        )
-
-    except anthropic.APIError as e:
-        logger.error(f"Erreur API Anthropic: {e}")
-        raise HTTPException(status_code=502, detail=f"Erreur API Claude: {str(e)}")
-    except Exception as e:
-        logger.error(f"Erreur inattendue: {e}")
-        raise HTTPException(status_code=500, detail=f"Erreur serveur: {str(e)}")
+    return {
+        "command": command,
+        "response": response,
+        "duration_ms": duration_ms
+    }
 
 
 # ========================================
-# Point d'entree
+# Point d'entrée
 # ========================================
 
 if __name__ == "__main__":
-    logger.info(f"Demarrage du serveur ULY API sur le port {SERVER_PORT}")
+    logger.info(f"Démarrage du serveur ULY API sur le port {SERVER_PORT}")
     logger.info(f"Workspace: {ULY_ROOT}")
 
     if not API_TOKEN:
-        logger.warning("ATTENTION: Aucun token API configure - l'API est ouverte!")
+        logger.warning("⚠️  ATTENTION: Aucun token API configuré - l'API est ouverte!")
+
+    if not check_claude_available():
+        logger.error("❌ Claude Code n'est pas disponible!")
+        logger.error("   Installez-le avec: npm install -g @anthropic-ai/claude-code")
+    else:
+        logger.info("✓ Claude Code disponible")
 
     uvicorn.run(
         app,
