@@ -140,8 +140,7 @@ Les contributions sont les bienvenues ! Consultez `.uly/integrations/README.md` 
 
 ## Crédits
 
-Basé sur [MARVIN](https://github.com/SterlingChin/marvin-template) par Sterling Chin.
-Adapté et traduit en français.
+Inspiré par [MARVIN](https://github.com/SterlingChin/marvin-template) par Sterling Chin.
 
 ---
 
