@@ -8,8 +8,10 @@ import asyncio
 import json
 import logging
 import os
+import re
 import subprocess
 import time
+import uuid
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
@@ -33,6 +35,11 @@ load_dotenv(ULY_ROOT / ".env")
 # Configuration
 API_TOKEN = os.environ.get("ULY_API_TOKEN", "")
 SERVER_PORT = int(os.environ.get("ULY_SERVER_PORT", "8787"))
+
+# IP Whitelist (optionnel) - séparées par des virgules
+# Ex: "192.168.1.100,10.0.0.50" ou vide pour autoriser tout
+IP_WHITELIST_RAW = os.environ.get("ULY_IP_WHITELIST", "").strip()
+IP_WHITELIST = [ip.strip() for ip in IP_WHITELIST_RAW.split(",") if ip.strip()] if IP_WHITELIST_RAW else []
 
 # Rate limiting
 RATE_LIMIT = 100  # requêtes par minute
@@ -69,14 +76,14 @@ app.add_middleware(
 class AskRequest(BaseModel):
     """Requête pour poser une question à ULY."""
     message: str
-    conversation_id: Optional[str] = None
+    session_id: Optional[str] = None  # Pour reprendre une conversation existante
     timeout: int = 120  # secondes
 
 
 class AskResponse(BaseModel):
     """Réponse de ULY."""
     response: str
-    conversation_id: Optional[str] = None
+    session_id: Optional[str] = None  # ID de session pour continuer la conversation
     duration_ms: int = 0
 
 
@@ -109,6 +116,48 @@ def check_rate_limit(client_ip: str) -> bool:
 
     rate_limit_store[client_ip].append(now)
     return True
+
+
+def get_client_ip(request: Request) -> str:
+    """
+    Récupère l'IP réelle du client.
+    Gère les headers Cloudflare et les proxies.
+    """
+    # Cloudflare envoie l'IP réelle dans CF-Connecting-IP
+    cf_ip = request.headers.get("CF-Connecting-IP")
+    if cf_ip:
+        return cf_ip
+
+    # Fallback sur X-Forwarded-For (premier IP de la chaîne)
+    forwarded = request.headers.get("X-Forwarded-For")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+
+    # Fallback sur X-Real-IP
+    real_ip = request.headers.get("X-Real-IP")
+    if real_ip:
+        return real_ip
+
+    # Dernier recours : IP directe
+    return request.client.host if request.client else "unknown"
+
+
+def check_ip_whitelist(request: Request) -> bool:
+    """
+    Vérifie si l'IP du client est dans la whitelist.
+    Si la whitelist est vide, autorise tout.
+    """
+    if not IP_WHITELIST:
+        return True  # Pas de whitelist = tout autorisé
+
+    client_ip = get_client_ip(request)
+
+    if client_ip in IP_WHITELIST:
+        return True
+
+    # Log la tentative bloquée
+    logger.warning(f"IP bloquée: {client_ip} (whitelist: {IP_WHITELIST})")
+    return False
 
 
 def verify_token(authorization: str = Header(None)) -> bool:
@@ -148,17 +197,34 @@ def check_claude_available() -> bool:
         return False
 
 
-async def call_claude(message: str, timeout: int = 120) -> str:
+async def call_claude(
+    message: str,
+    timeout: int = 120,
+    session_id: Optional[str] = None
+) -> tuple[str, Optional[str]]:
     """
     Appelle Claude Code en mode non-interactif.
     Utilise le workspace ULY avec tout son contexte.
+
+    Args:
+        message: Le message à envoyer
+        timeout: Timeout en secondes
+        session_id: ID de session pour reprendre une conversation
+
+    Returns:
+        Tuple (response, session_id)
     """
     try:
+        # Construire les arguments
+        args = ["claude", "-p", message, "--no-spinner"]
+
+        # Si session_id fourni, reprendre la conversation
+        if session_id:
+            args.extend(["--resume", session_id])
+
         # Créer le process Claude Code
         process = await asyncio.create_subprocess_exec(
-            "claude",
-            "-p", message,  # Mode print (non-interactif)
-            "--no-spinner",  # Pas de spinner
+            *args,
             cwd=str(ULY_ROOT),
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
@@ -190,9 +256,14 @@ async def call_claude(message: str, timeout: int = 120) -> str:
         response = stdout.decode().strip()
 
         if not response:
-            return "Je n'ai pas pu générer de réponse."
+            response = "Je n'ai pas pu générer de réponse."
 
-        return response
+        # Générer un session_id si pas fourni (pour nouvelle conversation)
+        # Note: Claude Code ne retourne pas facilement l'ID de session en mode -p
+        # On génère un ID côté serveur pour tracker les conversations
+        new_session_id = session_id or str(uuid.uuid4())[:8]
+
+        return response, new_session_id
 
     except HTTPException:
         raise
@@ -258,11 +329,18 @@ async def ask(
     - L'historique des sessions
     """
 
+    # Vérifier l'IP whitelist
+    if not check_ip_whitelist(request):
+        raise HTTPException(
+            status_code=403,
+            detail=f"IP non autorisée: {get_client_ip(request)}"
+        )
+
     # Vérifier l'authentification
     verify_token(authorization)
 
     # Vérifier le rate limiting
-    client_ip = request.client.host if request.client else "unknown"
+    client_ip = get_client_ip(request)
     if not check_rate_limit(client_ip):
         raise HTTPException(
             status_code=429,
@@ -270,21 +348,27 @@ async def ask(
         )
 
     logger.info(f"Requête de {client_ip}: {body.message[:100]}...")
+    if body.session_id:
+        logger.info(f"  Session: {body.session_id}")
 
     # Mesurer le temps
     start_time = time.time()
 
-    # Appeler Claude Code
-    response = await call_claude(body.message, timeout=body.timeout)
+    # Appeler Claude Code (avec session si fournie)
+    response, session_id = await call_claude(
+        body.message,
+        timeout=body.timeout,
+        session_id=body.session_id
+    )
 
     # Calculer la durée
     duration_ms = int((time.time() - start_time) * 1000)
 
-    logger.info(f"Réponse générée en {duration_ms}ms")
+    logger.info(f"Réponse générée en {duration_ms}ms (session: {session_id})")
 
     return AskResponse(
         response=response,
-        conversation_id=body.conversation_id,
+        session_id=session_id,
         duration_ms=duration_ms
     )
 
@@ -315,6 +399,13 @@ async def run_command(
     - POST /command/ask {"args": "recherche dans mes notes"}
     """
 
+    # Vérifier l'IP whitelist
+    if not check_ip_whitelist(request):
+        raise HTTPException(
+            status_code=403,
+            detail=f"IP non autorisée: {get_client_ip(request)}"
+        )
+
     verify_token(authorization)
 
     # Construire la commande complète
@@ -327,7 +418,7 @@ async def run_command(
     logger.info(f"Exécution: {full_command}")
 
     start_time = time.time()
-    response = await call_claude(full_command, timeout=timeout)
+    response, _ = await call_claude(full_command, timeout=timeout)
     duration_ms = int((time.time() - start_time) * 1000)
 
     return {
@@ -353,9 +444,16 @@ async def raw_command(
     - Des instructions : "Crée un fichier test.md"
     """
 
+    # Vérifier l'IP whitelist
+    if not check_ip_whitelist(request):
+        raise HTTPException(
+            status_code=403,
+            detail=f"IP non autorisée: {get_client_ip(request)}"
+        )
+
     verify_token(authorization)
 
-    client_ip = request.client.host if request.client else "unknown"
+    client_ip = get_client_ip(request)
     if not check_rate_limit(client_ip):
         raise HTTPException(
             status_code=429,
@@ -363,14 +461,21 @@ async def raw_command(
         )
 
     logger.info(f"Commande brute de {client_ip}: {body.message[:100]}...")
+    if body.session_id:
+        logger.info(f"  Session: {body.session_id}")
 
     start_time = time.time()
-    response = await call_claude(body.message, timeout=body.timeout)
+    response, session_id = await call_claude(
+        body.message,
+        timeout=body.timeout,
+        session_id=body.session_id
+    )
     duration_ms = int((time.time() - start_time) * 1000)
 
     return {
         "input": body.message,
         "response": response,
+        "session_id": session_id,
         "duration_ms": duration_ms
     }
 
@@ -385,6 +490,13 @@ if __name__ == "__main__":
 
     if not API_TOKEN:
         logger.warning("⚠️  ATTENTION: Aucun token API configuré - l'API est ouverte!")
+    else:
+        logger.info("✓ Token API configuré")
+
+    if IP_WHITELIST:
+        logger.info(f"✓ IP Whitelist active: {IP_WHITELIST}")
+    else:
+        logger.warning("⚠️  IP Whitelist désactivée - toutes les IPs autorisées")
 
     if not check_claude_available():
         logger.error("❌ Claude Code n'est pas disponible!")

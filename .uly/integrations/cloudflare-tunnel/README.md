@@ -154,8 +154,44 @@ curl -X POST https://votre-tunnel.trycloudflare.com/raw \
 | Paramètre | Type | Description |
 |-----------|------|-------------|
 | `message` | string | Le message/commande (requis pour `/ask` et `/raw`) |
+| `session_id` | string | ID de session pour reprendre une conversation |
 | `args` | string | Arguments pour `/command/{cmd}` |
 | `timeout` | int | Timeout en secondes (défaut: 120-180) |
+
+---
+
+## Sessions (conversations continues)
+
+Pour avoir une conversation avec plusieurs échanges (comme un chat), utilise `session_id` :
+
+**1. Premier message — pas de session_id**
+```bash
+curl -X POST https://tunnel.example.com/ask \
+  -H "Authorization: Bearer TOKEN" \
+  -d '{"message": "Salut, je travaille sur le projet X"}'
+```
+
+**Réponse :**
+```json
+{
+  "response": "Salut ! Qu'est-ce que tu veux faire sur le projet X ?",
+  "session_id": "a1b2c3d4",
+  "duration_ms": 1500
+}
+```
+
+**2. Message suivant — avec session_id**
+```bash
+curl -X POST https://tunnel.example.com/ask \
+  -H "Authorization: Bearer TOKEN" \
+  -d '{"message": "Ajoute une tâche pour finir la doc", "session_id": "a1b2c3d4"}'
+```
+
+ULY se souvient du contexte (projet X) grâce au `session_id`.
+
+**Dans N8N :**
+1. Premier nœud : envoie le message, stocke `session_id` de la réponse
+2. Nœuds suivants : passe le `session_id` dans les requêtes
 
 ## Configuration N8N
 
@@ -183,11 +219,32 @@ Authorization: Bearer VOTRE_TOKEN
 
 Le token est dans `.uly/integrations/cloudflare-tunnel/.env`
 
+### IP Whitelist (optionnel)
+
+Restreindre l'accès à certaines IPs uniquement (ex: ton serveur N8N) :
+
+```bash
+# Dans .env
+ULY_IP_WHITELIST=192.168.1.100,10.0.0.50
+```
+
+- **Vide** = tout le monde peut accéder (avec le token)
+- **Défini** = seules ces IPs peuvent accéder
+
+L'API gère automatiquement les headers Cloudflare (`CF-Connecting-IP`) pour récupérer l'IP réelle.
+
+**Trouver l'IP de ton serveur N8N :**
+```bash
+# Sur le serveur N8N
+curl ifconfig.me
+```
+
 ### Bonnes pratiques
 
 - **Ne partagez jamais votre token**
 - **Le tunnel force HTTPS** — Connexion chiffrée
 - **Rate limiting** — 100 requêtes/minute max
+- **IP Whitelist** — Active-la si tu connais les IPs sources
 - **Regénérez le token si compromis** : relancez `setup.sh`
 
 ## Zone de Danger
