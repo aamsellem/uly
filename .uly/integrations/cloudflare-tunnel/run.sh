@@ -1,103 +1,167 @@
 #!/bin/bash
-# Démarrer le serveur ULY API et le tunnel Cloudflare
-
-set -e
+# Demarre le serveur ULY et le tunnel Cloudflare
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR"
 
 # Couleurs
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+DIM='\033[2m'
 NC='\033[0m'
 
-# Paramètres
+# Charger la configuration
+if [ -f "$SCRIPT_DIR/.env" ]; then
+    export $(grep -v '^#' "$SCRIPT_DIR/.env" | xargs)
+fi
+
+# Parametre optionnel : N8N_HOSTNAME
 N8N_HOSTNAME="${1:-$N8N_HOSTNAME}"
 
-# Récupérer le nom de l'utilisateur automatiquement
-if [ -z "$ULY_USER_NAME" ]; then
-    ULY_USER_NAME=$(git config user.name 2>/dev/null || id -F 2>/dev/null || echo "$USER")
-fi
-
 echo ""
-echo -e "${BLUE}========================================${NC}"
-echo -e "${BLUE}  ULY API - Démarrage${NC}"
-echo -e "${BLUE}========================================${NC}"
+echo -e "${BLUE}╔════════════════════════════════════════╗${NC}"
+echo -e "${BLUE}║${NC}     ${GREEN}Demarrage ULY API + Tunnel${NC}        ${BLUE}║${NC}"
+echo -e "${BLUE}╚════════════════════════════════════════╝${NC}"
 echo ""
 
-# Vérifier l'environnement virtuel
-if [ ! -d "venv" ]; then
-    echo -e "${RED}✗ Environnement virtuel non trouvé${NC}"
-    echo "Lancez d'abord : ./.uly/integrations/cloudflare-tunnel/setup.sh"
+# Verifier que Claude Code est disponible
+if ! command -v claude &> /dev/null; then
+    echo -e "${RED}✗ Claude Code non disponible${NC}"
+    echo "  Installez-le avec : npm install -g @anthropic-ai/claude-code"
     exit 1
 fi
 
-# Charger les variables d'environnement
-if [ -f ".env" ]; then
-    source .env
-elif [ -f "../../../.env" ]; then
-    source ../../../.env
-fi
-
-# Vérifier le token API
-if [ -z "$ULY_API_TOKEN" ]; then
-    echo -e "${RED}✗ ULY_API_TOKEN non défini${NC}"
-    echo "Relancez le setup ou ajoutez ULY_API_TOKEN à votre .env"
-    exit 1
-fi
+echo -e "${GREEN}✓${NC} Claude Code disponible"
 
 # Activer l'environnement virtuel
-source venv/bin/activate
+source "$SCRIPT_DIR/venv/bin/activate"
 
-# Démarrer le serveur
-echo -e "${GREEN}▶ Démarrage du serveur API...${NC}"
-echo ""
-echo -e "  Token d'authentification : ${YELLOW}$ULY_API_TOKEN${NC}"
-echo ""
+# Fonction de nettoyage
+cleanup() {
+    echo ""
+    echo -e "${YELLOW}Arret des services...${NC}"
+    kill $SERVER_PID 2>/dev/null
+    kill $TUNNEL_PID 2>/dev/null
+    exit 0
+}
 
-# Option pour démarrer le tunnel aussi
-if command -v cloudflared &> /dev/null && [ -n "$CLOUDFLARE_TUNNEL_NAME" ]; then
-    echo -e "${BLUE}Démarrage du tunnel Cloudflare...${NC}"
-    cloudflared tunnel run "$CLOUDFLARE_TUNNEL_NAME" &
+trap cleanup SIGINT SIGTERM
+
+# Demarrer le serveur API
+echo -e "${BLUE}Demarrage du serveur API sur le port ${SERVER_PORT:-8787}...${NC}"
+cd "$SCRIPT_DIR"
+python server.py &
+SERVER_PID=$!
+
+# Attendre que le serveur demarre
+sleep 2
+
+# Verifier que le serveur est demarre
+if ! kill -0 $SERVER_PID 2>/dev/null; then
+    echo -e "${RED}✗ Le serveur API n'a pas demarre${NC}"
+    exit 1
+fi
+
+echo -e "${GREEN}✓${NC} Serveur API demarre (PID: $SERVER_PID)"
+
+# Demarrer le tunnel
+echo ""
+echo -e "${BLUE}Demarrage du tunnel Cloudflare...${NC}"
+
+if [ "$USE_NAMED_TUNNEL" = "true" ]; then
+    # Tunnel nomme
+    cloudflared tunnel --config "$SCRIPT_DIR/config.yml" run &
     TUNNEL_PID=$!
-    echo -e "${GREEN}✓ Tunnel démarré (PID: $TUNNEL_PID)${NC}"
 
-    # Récupérer le hostname Cloudflare
-    sleep 3  # Attendre que le tunnel soit établi
-    CLOUDFLARE_HOSTNAME=$(cloudflared tunnel info "$CLOUDFLARE_TUNNEL_NAME" 2>/dev/null | grep -oE '[a-zA-Z0-9-]+\.trycloudflare\.com' | head -1)
+    sleep 3
 
-    # Si hostname non trouvé via info, essayer avec la config DNS
-    if [ -z "$CLOUDFLARE_HOSTNAME" ]; then
-        CLOUDFLARE_HOSTNAME=$(cloudflared tunnel route dns "$CLOUDFLARE_TUNNEL_NAME" 2>/dev/null | grep -oE '[a-zA-Z0-9.-]+\.[a-zA-Z]+' | head -1)
+    # Afficher l'URL du tunnel
+    TUNNEL_URL=$(cloudflared tunnel info "$TUNNEL_NAME" 2>/dev/null | grep -o 'https://[^ ]*' | head -1)
+    if [ -z "$TUNNEL_URL" ]; then
+        TUNNEL_URL="https://$TUNNEL_NAME.cfargotunnel.com"
     fi
+else
+    # Quick tunnel - rediriger stdout ET stderr vers le fichier log
+    cloudflared tunnel --url http://localhost:${SERVER_PORT:-8787} > /tmp/cloudflared.log 2>&1 &
+    TUNNEL_PID=$!
 
-    # Enregistrer auprès de N8N si hostname fourni
-    if [ -n "$N8N_HOSTNAME" ] && [ -n "$CLOUDFLARE_HOSTNAME" ]; then
-        echo -e "${BLUE}Enregistrement auprès de N8N...${NC}"
-
-        REGISTER_RESPONSE=$(curl -s -X POST "https://${N8N_HOSTNAME}/webhook/uly-register" \
-            -H "Content-Type: application/json" \
-            -d "{\"hostname\": \"${CLOUDFLARE_HOSTNAME}\", \"name\": \"${ULY_USER_NAME}\", \"token\": \"${ULY_API_TOKEN}\"}" \
-            2>/dev/null)
-
-        if [ $? -eq 0 ]; then
-            echo -e "${GREEN}✓ Enregistré auprès de N8N${NC}"
-            echo -e "  Hostname: ${YELLOW}${CLOUDFLARE_HOSTNAME}${NC}"
-        else
-            echo -e "${YELLOW}⚠ Échec de l'enregistrement N8N${NC}"
+    # Attendre et extraire l'URL (avec retry car cloudflared prend du temps)
+    echo -e "  ${DIM}Attente de l'URL du tunnel...${NC}"
+    TUNNEL_URL=""
+    for i in {1..30}; do
+        TUNNEL_URL=$(grep -o 'https://[a-zA-Z0-9-]*\.trycloudflare\.com' /tmp/cloudflared.log 2>/dev/null | head -1)
+        if [ -n "$TUNNEL_URL" ]; then
+            break
         fi
-    elif [ -n "$N8N_HOSTNAME" ] && [ -z "$CLOUDFLARE_HOSTNAME" ]; then
-        echo -e "${YELLOW}⚠ Hostname Cloudflare non trouvé, enregistrement N8N ignoré${NC}"
+        sleep 1
+        echo -ne "\r  ${DIM}Attente de l'URL du tunnel... ${i}s${NC}  "
+    done
+    echo ""
+
+    if [ -z "$TUNNEL_URL" ]; then
+        echo -e "${YELLOW}! URL non detectee automatiquement${NC}"
+        echo "  Regardez la sortie cloudflared ci-dessous pour trouver l'URL :"
+        echo ""
+        cat /tmp/cloudflared.log | grep -i "https://" | head -5
+        echo ""
+        TUNNEL_URL="[voir ci-dessus]"
     fi
+fi
+
+# Enregistrement N8N si configure
+if [ -n "$N8N_HOSTNAME" ] && [ -n "$TUNNEL_URL" ] && [ "$TUNNEL_URL" != "[voir ci-dessus]" ]; then
+    echo ""
+    echo -e "${BLUE}Enregistrement aupres de N8N...${NC}"
+
+    # Auto-detecter le nom utilisateur
+    ULY_USER_NAME=$(git config user.name 2>/dev/null || id -F 2>/dev/null || echo "$USER")
+
+    REGISTER_RESPONSE=$(curl -s -X POST "https://${N8N_HOSTNAME}/webhook/uly-register" \
+        -H "Content-Type: application/json" \
+        -d "{\"hostname\": \"${TUNNEL_URL}\", \"name\": \"${ULY_USER_NAME}\", \"token\": \"${ULY_API_TOKEN}\"}" \
+        2>/dev/null)
+
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}✓${NC} Enregistre aupres de N8N"
+    else
+        echo -e "${YELLOW}! Echec de l'enregistrement N8N${NC}"
+    fi
+fi
+
+echo ""
+echo -e "${GREEN}╔════════════════════════════════════════════════════════════╗${NC}"
+echo -e "${GREEN}║${NC}              ${GREEN}ULY API en Ligne !${NC}                          ${GREEN}║${NC}"
+echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}"
+echo ""
+echo -e "  ${BLUE}URL publique :${NC} ${TUNNEL_URL}"
+echo ""
+echo -e "  ${BLUE}Token :${NC} $ULY_API_TOKEN"
+echo ""
+if [ -n "$ULY_IP_WHITELIST" ]; then
+    echo -e "  ${BLUE}IP Whitelist :${NC} $ULY_IP_WHITELIST"
     echo ""
 fi
+echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo ""
+echo -e "  ${BOLD}Endpoints disponibles :${NC}"
+echo ""
+echo -e "  POST ${TUNNEL_URL}${GREEN}/ask${NC}        - Poser une question"
+echo -e "  POST ${TUNNEL_URL}${GREEN}/command/uly${NC} - Lancer /uly"
+echo -e "  POST ${TUNNEL_URL}${GREEN}/raw${NC}        - Commande brute"
+echo -e "  GET  ${TUNNEL_URL}${GREEN}/health${NC}     - Verifier le service"
+echo ""
+echo -e "  ${BOLD}Test rapide :${NC}"
+echo ""
+echo    "  curl -X POST ${TUNNEL_URL}/ask \\"
+echo    "    -H \"Authorization: Bearer \$ULY_API_TOKEN\" \\"
+echo    "    -H \"Content-Type: application/json\" \\"
+echo    "    -d '{\"message\": \"Bonjour !\"}'"
+echo ""
+echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo ""
+echo -e "  ${YELLOW}Appuyez sur Ctrl+C pour arreter${NC}"
+echo ""
 
-# Démarrer le serveur Python
-python server.py
-
-# Cleanup si tunnel actif
-if [ -n "$TUNNEL_PID" ]; then
-    kill $TUNNEL_PID 2>/dev/null || true
-fi
+# Attendre
+wait

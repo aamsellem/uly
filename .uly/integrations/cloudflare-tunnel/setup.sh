@@ -499,6 +499,10 @@ ULY_WORKSPACE=$ULY_ROOT
 # IP Whitelist (optionnel, separees par des virgules)
 # Laissez vide pour autoriser toutes les IPs
 ULY_IP_WHITELIST=$IP_WHITELIST
+
+# Hostname N8N pour l'enregistrement automatique (optionnel)
+# Ex: n8n.mondomaine.com
+N8N_HOSTNAME=
 EOF
 
 echo -e "${GREEN}✓${NC} Configuration sauvegardee dans .env"
@@ -610,6 +614,26 @@ else
         cat /tmp/cloudflared.log | grep -i "https://" | head -5
         echo ""
         TUNNEL_URL="[voir ci-dessus]"
+    fi
+fi
+
+# Enregistrement N8N si configure
+if [ -n "$N8N_HOSTNAME" ] && [ -n "$TUNNEL_URL" ] && [ "$TUNNEL_URL" != "[voir ci-dessus]" ]; then
+    echo ""
+    echo -e "${BLUE}Enregistrement aupres de N8N...${NC}"
+
+    # Auto-detecter le nom utilisateur
+    ULY_USER_NAME=$(git config user.name 2>/dev/null || id -F 2>/dev/null || echo "$USER")
+
+    REGISTER_RESPONSE=$(curl -s -X POST "https://${N8N_HOSTNAME}/webhook/uly-register" \
+        -H "Content-Type: application/json" \
+        -d "{\"hostname\": \"${TUNNEL_URL}\", \"name\": \"${ULY_USER_NAME}\", \"token\": \"${ULY_API_TOKEN}\"}" \
+        2>/dev/null)
+
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}✓${NC} Enregistre aupres de N8N"
+    else
+        echo -e "${YELLOW}! Echec de l'enregistrement N8N${NC}"
     fi
 fi
 
