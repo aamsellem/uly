@@ -27,12 +27,11 @@ help: ## Afficher cette aide
 # DÉMARRAGE
 # ===========================================
 
-start: ## Lancer ULY avec /uly
-	@claude --dangerously-skip-permissions -p "/uly"
+start: ## Lancer ULY avec /uly (session interactive)
+	@claude --append-system-prompt "IMPORTANT: Commence immédiatement par exécuter la commande /uly pour faire le briefing de l'utilisateur. Ne dis rien d'autre avant d'avoir exécuté /uly."
 
 onboarding: ## Lancer l'onboarding (première configuration)
-	@echo "$(BLUE)Lancement de l'onboarding ULY...$(NC)"
-	@claude --dangerously-skip-permissions -p "Lis .uly/onboarding.md et guide-moi dans la configuration"
+	@claude --append-system-prompt "IMPORTANT: L'utilisateur veut configurer ULY pour la première fois. Lis .uly/onboarding.md et guide-le dans la configuration étape par étape."
 
 # ===========================================
 # TUNNEL
