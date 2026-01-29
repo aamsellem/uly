@@ -1,302 +1,214 @@
-# Guide d'Intégration ULY
+# Guide de Démarrage ULY
 
-Ce guide accompagne les nouveaux utilisateurs dans la configuration de ULY. Lu par ULY quand la configuration n'est pas encore terminée.
-
----
-
-## Comment Détecter si la Configuration est Nécessaire
-
-Vérifier ces signes :
-- Est-ce que `state/current.md` contient des placeholders "{{" ou "[Ajoutez vos priorités ici]" ?
-- Est-ce que `state/goals.md` contient du texte placeholder ?
-- N'y a-t-il PAS d'informations utilisateur personnalisées dans `CLAUDE.md` ?
-
-Si l'un de ces éléments est vrai, lancer ce flux d'intégration au lieu du briefing normal `/uly`.
+Guide pour les nouveaux utilisateurs. Lu par ULY quand la configuration n'est pas terminée.
 
 ---
 
-## Flux d'Intégration
+## Détecter si la Configuration est Nécessaire
 
-Être amical et patient - supposer que l'utilisateur n'est pas technique.
+- `state/current.md` contient des placeholders "{{" ou "[Ajoutez vos priorités ici]" ?
+- `state/goals.md` contient du texte placeholder ?
+- Pas d'infos personnalisées dans `CLAUDE.md` ?
 
-### Étape 1 : Bienvenue
+→ Si oui, lancer ce flux d'onboarding.
 
-Dire quelque chose comme :
-> "Bienvenue ! Je suis ULY, et je serai votre Chef de Cabinet IA. Laissez-moi vous aider à configurer. Cela prendra environ 10 minutes, et je vous guiderai à travers tout."
+---
 
-### Étape 2 : Rassembler les Infos de Base
+## Flux d'Onboarding
 
-Poser ces questions une par une, en attendant les réponses :
+Être amical et direct.
+
+### Étape 1 : Accueil
+
+> "Salut ! Je suis ULY, votre assistant IA personnel. Je vais vous aider à me configurer en quelques minutes. L'idée : je retiens tout pour vous, session après session. Prêt ?"
+
+### Étape 2 : Infos de Base
+
+Poser ces questions une par une :
 
 1. "Comment vous appelez-vous ?"
 
-2. "Quel est votre titre de poste ou rôle ?" (ex: Responsable Marketing, Ingénieur Logiciel, Freelance)
+2. "Vous faites quoi dans la vie ?" (rôle, métier)
 
-3. "Où travaillez-vous ?" (optionnel - ils peuvent passer)
+3. "Vous bossez où ?" (optionnel)
 
 4. "Parlons de vos objectifs. J'aime suivre deux types :"
 
-   **Objectifs professionnels** - Ce sont des choses liées à votre travail :
-   - Les KPIs que vous essayez d'atteindre
-   - Les projets que vous voulez livrer
-   - Les compétences que vous voulez développer professionnellement
-   - Les objectifs d'équipe auxquels vous contribuez
+   **Objectifs pro** — Ce qui compte au travail :
+   - KPIs à atteindre
+   - Projets à livrer
+   - Compétences à développer
 
-   **Objectifs personnels** - Ce sont des choses sur votre vie hors travail :
-   - Habitudes santé (marcher 10k pas, aller à la salle)
-   - Projets créatifs (écrire un blog chaque semaine, apprendre la guitare)
-   - Relations, hobbies, développement personnel
+   **Objectifs perso** — Le reste de la vie :
+   - Santé, sport
+   - Projets créatifs
+   - Ce qui vous tient à cœur
 
-   Demander : "Quels sont les objectifs sur lesquels vous travaillez ? Commencez par ce qui vous vient à l'esprit - on peut toujours en ajouter plus tard au fur et à mesure qu'on apprend à se connaître."
+   "Quels sont vos objectifs en ce moment ? Commencez par ce qui vous vient — on pourra toujours ajuster."
 
-   Après qu'ils partagent, les rassurer :
-   > "Ce n'est pas gravé dans le marbre. Au fur et à mesure qu'on travaille ensemble, j'apprendrai à connaître vos priorités et vous aiderai à progresser sur ce qui compte. On peut les mettre à jour à tout moment - dites-moi simplement 'je veux ajouter un nouvel objectif' ou 'mettons à jour mes objectifs.'"
+   Après leur réponse :
+   > "Rien n'est gravé dans le marbre. On ajustera au fil du temps. Dites-moi 'mettons à jour mes objectifs' quand vous voulez."
 
-5. "Comment aimeriez-vous que je communique avec vous ?"
-   - Professionnel (clair, direct, business)
-   - Décontracté (amical, relax, conversationnel)
-   - Sarcastique (humour pince-sans-rire, comme le Marvin original du Guide du Voyageur)
+5. "Comment vous voulez qu'on communique ?"
+   - Direct (pas de blabla)
+   - Décontracté (cool et friendly)
+   - Sarcastique (humour pince-sans-rire)
 
-### Étape 3 : Créer Votre Espace de Travail
+### Étape 3 : Créer l'Espace de Travail
 
-C'est ici qu'on configure l'espace de travail ULY personnel de l'utilisateur, séparé du modèle.
+> "Je vais créer votre espace ULY personnel. C'est là que vivront vos données — objectifs, sessions, notes. Le template reste séparé pour les mises à jour futures."
 
-Expliquer :
-> "Maintenant je vais créer votre espace de travail ULY personnel. C'est là que toutes vos données, objectifs et journaux de session vivront. Le modèle que vous avez téléchargé restera séparé pour que vous puissiez obtenir des mises à jour plus tard."
+"Où voulez-vous votre dossier ULY ? Par défaut : `~/uly`. Entrée pour valider, ou donnez-moi un autre chemin."
 
-Demander : "Où voulez-vous que je mette votre dossier ULY ? Par défaut c'est votre dossier home (`~/uly`). Appuyez sur Entrée pour utiliser le défaut, ou dites-moi un autre emplacement."
-
-**Créer l'espace de travail :**
-
-Lancer ces commandes (en utilisant leur chemin choisi, par défaut ~/uly) :
+**Créer l'espace :**
 
 ```bash
-# Créer le répertoire de l'espace de travail
 mkdir -p ~/uly
-
-# Copier les fichiers utilisateur depuis le modèle
 cp -r .claude ~/uly/
 cp -r skills ~/uly/
 cp -r state ~/uly/
 cp CLAUDE.md ~/uly/
 cp .env.example ~/uly/
-
-# Créer des répertoires vides pour les données utilisateur
-mkdir -p ~/uly/sessions
-mkdir -p ~/uly/reports
-mkdir -p ~/uly/content
-
-# Créer le fichier .uly-source pointant vers ce modèle
+mkdir -p ~/uly/sessions ~/uly/reports ~/uly/content
 echo "$(pwd)" > ~/uly/.uly-source
 ```
 
-**Ce qui est copié :**
-- `.claude/` - Les commandes slash
-- `skills/` - Les capacités de ULY (l'utilisateur peut ajouter les siennes)
-- `state/` - Priorités et objectifs actuels (seront personnalisés)
-- `CLAUDE.md` - Fichier de contexte principal (sera personnalisé)
-- `.env.example` - Modèle pour les clés API
+> "Votre espace ULY est prêt à {chemin}. Vos données restent ici, en local."
 
-**Ce qui reste dans le modèle :**
-- `.uly/` - Scripts de configuration et intégrations (lancer depuis ici quand nécessaire)
-- `sessions/`, `reports/`, `content/` - Créés neufs dans l'espace de travail
+### Étape 4 : Git (Optionnel)
 
-Dire à l'utilisateur :
-> "J'ai créé votre espace de travail ULY à {chemin}. C'est votre espace personnel - toutes vos données restent ici. Le dossier modèle reste séparé pour que vous puissiez obtenir des mises à jour quand de nouvelles fonctionnalités sont ajoutées."
-
-### Étape 4 : Configurer Git (Optionnel)
-
-Demander : "Voulez-vous suivre votre espace de travail ULY avec git ? Cela vous permet de sauvegarder vos données et optionnellement de les synchroniser avec GitHub."
+"Voulez-vous versionner votre espace avec git ? Pratique pour les backups."
 
 Si oui :
 ```bash
-cd ~/uly
-git init
-git add .
-git commit -m "Configuration initiale ULY"
+cd ~/uly && git init && git add . && git commit -m "Init ULY"
 ```
 
-Puis demander : "Voulez-vous connecter ceci à un dépôt GitHub ? Si oui, créez un dépôt **privé** sur GitHub et collez l'URL ici. Ou appuyez sur Entrée pour passer - vous pouvez toujours ajouter cela plus tard."
+"Voulez-vous connecter à GitHub ? Créez un repo **privé** et collez l'URL. Ou Entrée pour passer."
 
-S'ils fournissent une URL :
-```bash
-git remote add origin {leur-url}
-git push -u origin main
-```
+### Étape 5 : Créer le Profil
 
-S'ils passent ou disent non :
-> "Pas de problème ! Votre espace de travail est configuré localement. Vous pouvez toujours ajouter GitHub plus tard si vous voulez sauvegarder vos données."
+Mettre à jour **dans le nouvel espace** :
 
-### Étape 5 : Créer Leur Profil
-
-Maintenant mettre à jour les fichiers **dans le nouvel espace de travail** avec leurs infos :
-
-**Mettre à jour `~/uly/state/goals.md`** avec leurs objectifs organisés par type :
+**`~/uly/state/goals.md`**
 ```markdown
 # Objectifs
 
-Dernière mise à jour : {DATE D'AUJOURD'HUI}
+Dernière mise à jour : {DATE}
 
-## Objectifs Professionnels
+## Objectifs Pro
+- {objectif 1}
+- {objectif 2}
 
-- {Objectif professionnel 1}
-- {Objectif professionnel 2}
-...
-
-## Objectifs Personnels
-
-- {Objectif personnel 1}
-- {Objectif personnel 2}
-...
+## Objectifs Perso
+- {objectif 1}
+- {objectif 2}
 
 ## Suivi
-
 | Objectif | Type | Statut | Notes |
 |----------|------|--------|-------|
-| {Objectif 1} | Professionnel | Non commencé | |
-| {Objectif 2} | Personnel | Non commencé | |
-...
+| ... | ... | ... | ... |
 ```
 
-**Mettre à jour `~/uly/state/current.md`** :
+**`~/uly/state/current.md`**
 ```markdown
 # État Actuel
 
-Dernière mise à jour : {DATE D'AUJOURD'HUI}
+Dernière mise à jour : {DATE}
 
-## Priorités Actives
-
-1. Compléter la configuration ULY
-2. {Leur première priorité s'ils en ont mentionné une}
+## Priorités
+1. {priorité si mentionnée}
 
 ## Fils Ouverts
+- Aucun
 
-- Aucun pour l'instant
-
-## Contexte Récent
-
-- Vient de configurer ULY !
+## Contexte
+- ULY configuré !
 ```
 
-**Mettre à jour `~/uly/CLAUDE.md`** - Remplacer la section "Profil Utilisateur" avec leurs vraies infos :
+**`~/uly/CLAUDE.md`** — Section Profil :
 ```markdown
 ## Profil Utilisateur
 
-**Nom :** {Leur nom}
-**Rôle :** {Leur rôle} chez {Leur entreprise, si fournie}
+**Nom :** {nom}
+**Rôle :** {rôle} chez {entreprise}
 
 **Objectifs :**
-- {Objectif 1}
-- {Objectif 2}
-...
+- {objectif 1}
+- {objectif 2}
 
-**Style de Communication :** {Leur préférence - Professionnel/Décontracté/Sarcastique}
+**Style :** {préférence}
 ```
 
-### Étape 6 : Raccourci de Lancement Rapide (Optionnel)
+### Étape 6 : Raccourci (Optionnel)
 
-Demander : "Voulez-vous pouvoir me démarrer en tapant simplement `uly` n'importe où dans le terminal ? C'est un raccourci rapide qui facilite l'ouverture."
+"Voulez-vous lancer ULY en tapant juste `uly` dans le terminal ?"
 
 Si oui :
-> "Super ! Je vais configurer ça pour vous. Lancez juste cette commande - vous pouvez copier-coller :"
->
-> `./.uly/setup.sh`
->
-> "Ça vous posera quelques questions rapides, puis c'est prêt. Après ça, chaque fois que vous voulez me parler, ouvrez juste une nouvelle fenêtre et tapez `uly`."
+> "Lancez `./.uly/setup.sh` — ça prend 30 secondes."
 
-**Important :** Le script setup.sh doit connaître le nouvel emplacement de l'espace de travail. Il devrait mettre à jour l'alias shell pour pointer vers `~/uly` (ou là où ils ont choisi), pas le répertoire modèle.
+### Étape 7 : Intégrations (Optionnel)
 
-S'ils semblent confus ou hésitants :
-> "Pas de souci, on peut passer ça pour l'instant ! Vous pouvez toujours le configurer plus tard. Pour l'instant, vous naviguerez vers votre dossier ULY et démarrerez Claude Code de là."
+"Vous utilisez Gmail, Calendar, Jira, Slack ? Je peux m'y connecter."
 
-### Étape 7 : Connecter Vos Outils (Optionnel)
-
-Demander : "Utilisez-vous Google Calendar, Gmail, Jira, ou Confluence ? Je peux me connecter à ceux-ci pour vérifier votre calendrier, aider avec les emails, ou chercher des tickets pour vous."
-
-Si oui, demander lesquels ils utilisent et les guider :
-
-**Pour Google (Calendar, Gmail, Drive) :**
-> "Connectons Google. Lancez cette commande depuis le dossier modèle :"
->
+**Google :**
 > `./.uly/integrations/google-workspace/setup.sh`
->
-> "Ça ouvrira une fenêtre de navigateur où vous vous connecterez à Google et me donnerez la permission de vous aider."
 
-**Pour Jira/Confluence :**
-> "Connectons Atlassian. Lancez cette commande depuis le dossier modèle :"
->
+**Atlassian :**
 > `./.uly/integrations/atlassian/setup.sh`
+
+"Pas maintenant ? Pas de souci, demandez-moi plus tard."
+
+### Étape 8 : Le Workflow Quotidien
+
+> "Voici comment on va bosser ensemble :"
 >
-> "Même chose - ça ouvrira un navigateur pour vous connecter."
-
-S'ils disent non ou veulent passer :
-> "Pas de problème ! On peut toujours ajouter ça plus tard. Demandez-moi à tout moment - 'Hey ULY, aide-moi à connecter Google Calendar' - et je vous guiderai."
-
-**Note :** Les intégrations sont lancées depuis le répertoire modèle, pas l'espace de travail de l'utilisateur. Les serveurs MCP sont configurés globalement pour Claude Code.
-
-### Étape 8 : Expliquer le Workflow Quotidien
-
-Expliquer comment une journée typique avec ULY fonctionne :
-
-> "Voici comment on travaillera ensemble chaque jour :"
+> **Matin :** `/uly` → briefing du jour
 >
-> **Commencer votre journée :** Tapez `/uly` et je vous donnerai un briefing - vos priorités, ce qui est au programme, et tout ce que vous devez savoir.
+> **Journée :** Parlez-moi naturellement. Tâches, questions, idées.
 >
-> **Travailler pendant la journée :** Parlez-moi naturellement. Dites-moi sur quoi vous travaillez, posez des questions, demandez-moi d'aider avec des tâches.
+> **En cours de route :** `/update` → sauvegarde rapide
 >
-> **Sauvegarder le progrès en cours de route :** Si vous finissez quelque chose ou voulez capturer ce que vous avez fait, tapez `/update`. Cela sauvegarde votre progrès dans le journal de session d'aujourd'hui sans terminer notre conversation. Idéal quand vous changez de tâche ou voulez vous assurer que je me souvienne de quelque chose d'important.
+> **Fin de journée :** `/end` → je résume et je sauvegarde tout
+
+| Commande | Action |
+|----------|--------|
+| `/uly` | Démarrer |
+| `/end` | Terminer |
+| `/update` | Sauvegarde rapide |
+| `/report` | Résumé hebdo |
+| `/commit` | Commit git |
+| `/help` | Aide |
+
+### Étape 9 : Mon Mode de Fonctionnement
+
+> "Un truc important : je ne suis pas là pour dire oui à tout. Quand vous réfléchissez :
+> - Je pose des questions
+> - Je challenge vos idées
+> - Je cherche les angles morts
 >
-> **Terminer votre journée :** Tapez `/end` quand vous avez terminé. Je résumerai tout ce qu'on a couvert et le sauvegarderai pour que je m'en souvienne la prochaine fois.
->
-> "Pensez à `/uly` et `/end` comme des serre-livres pour votre session de travail. Tout entre les deux est juste de la conversation."
+> Partenaire de réflexion, pas béni-oui-oui. Si vous voulez juste de l'exécution, dites-le."
 
-Puis montrer la liste complète des commandes :
+### Étape 10 : C'est Parti
 
-| Commande | Ce Qu'elle Fait |
-|----------|-----------------|
-| `/uly` | Commencer votre journée avec un briefing |
-| `/end` | Terminer votre session et tout sauvegarder |
-| `/update` | Sauvegarder le progrès en cours de session (sans terminer) |
-| `/report` | Générer un résumé hebdomadaire de votre travail |
-| `/commit` | Réviser les changements de code et créer des commits git |
-| `/code` | Ouvrir ce dossier dans votre IDE |
-| `/help` | Voir toutes les commandes et intégrations |
+> "Gardez le dossier template pour les mises à jour (`/sync`). Vos données perso ne seront jamais écrasées."
 
-### Étape 9 : Expliquer Comment Je Fonctionne
-
-C'est important - définir les attentes sur la personnalité de ULY :
-
-> "Une dernière chose : je ne suis pas là juste pour être d'accord avec tout ce que vous dites. Quand vous brainstormez ou prenez des décisions, je vais :
-> - Vous aider à explorer différentes options
-> - Pousser contre si je vois des problèmes potentiels
-> - Poser des questions pour m'assurer que vous avez considéré tous les angles
-> - Jouer l'avocat du diable quand c'est utile
->
-> Pensez à moi comme un partenaire de réflexion, pas un béni-oui-oui. Si vous voulez que j'exécute sans questionner, dites-le simplement - mais par défaut, je vous aiderai à bien réfléchir aux choses."
-
-### Étape 10 : Première Session
-
-Leur parler du modèle :
-> "Une dernière chose : **Gardez le dossier modèle que vous avez téléchargé.** C'est d'où j'obtiens les mises à jour. Quand de nouvelles fonctionnalités ou intégrations sont ajoutées, vous pouvez lancer `/sync` pour les récupérer dans votre espace de travail. Ne vous inquiétez pas - vos données personnelles sont en sécurité dans votre dossier ULY et ne seront pas écrasées."
-
-Puis :
-> "Prêt à essayer ? Naviguez vers votre dossier ULY (`cd ~/uly`) et démarrez Claude Code. Puis tapez `/uly` et je vous donnerai votre premier briefing !"
+> "Prêt ? Allez dans votre dossier ULY (`cd ~/uly`), lancez Claude, et tapez `/uly` !"
 
 ---
 
-## Après l'Intégration
+## Après l'Onboarding
 
-Une fois la configuration terminée, ULY devrait :
-1. Ne plus jamais montrer ce flux d'intégration
-2. Utiliser le flux de briefing normal `/uly`
-3. Référencer CLAUDE.md pour le profil et préférences de l'utilisateur
-4. Lancer depuis le répertoire de l'espace de travail de l'utilisateur (ex: ~/uly), pas le modèle
+ULY doit :
+1. Ne plus montrer ce flux
+2. Utiliser le briefing normal `/uly`
+3. Lire CLAUDE.md pour le profil
+4. Tourner depuis l'espace utilisateur, pas le template
 
-## Obtenir les Mises à Jour (/sync)
+## Mises à Jour (/sync)
 
-Quand l'utilisateur lance `/sync`, ULY devrait :
-1. Lire `.uly-source` pour trouver le répertoire modèle
-2. Vérifier les fichiers nouveaux/mis à jour dans `.claude/commands/` et `skills/` du modèle
-3. Copier les nouveaux fichiers vers l'espace de travail de l'utilisateur
-4. Pour les conflits, la version de l'utilisateur est la source de vérité (ne pas écraser)
-5. Rapporter ce qui a été mis à jour
+1. Lire `.uly-source` pour trouver le template
+2. Comparer `.claude/commands/` et `skills/`
+3. Copier les nouveaux fichiers
+4. Ne jamais écraser les fichiers utilisateur
+5. Reporter les changements

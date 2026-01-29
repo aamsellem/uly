@@ -1,99 +1,89 @@
-# ULY - Votre Chef de Cabinet IA
+# ULY ✨
 
-ULY est un assistant IA qui mémorise vos conversations, suit vos objectifs et vous aide à rester organisé. Comme avoir un chef de cabinet personnel qui n'oublie jamais rien.
+**Votre mémoire augmentée. Votre productivité décuplée.**
+
+ULY est un assistant IA qui ne vous oublie jamais. Il retient vos conversations, suit vos objectifs, et vous aide à accomplir plus — jour après jour.
+
+> *"Comme avoir un second cerveau qui n'oublie rien et qui travaille pour vous."*
 
 ---
 
-## Pour Commencer
+## Pourquoi ULY ?
 
-### 1. Télécharger ULY
+🧠 **Mémoire persistante** — Reprenez exactement où vous en étiez, même des semaines plus tard
 
-Cliquez sur le bouton vert "Code" ci-dessus, puis "Download ZIP". Décompressez-le quelque part sur votre ordinateur (comme votre dossier Téléchargements).
+🎯 **Suivi d'objectifs** — Gardez le cap sur ce qui compte vraiment
 
-Ou si vous utilisez git :
-```
-git clone https://github.com/SterlingChin/marvin-template.git uly
-```
+📋 **Gestion de tâches intelligente** — Une to-do list qui évolue avec vous
 
-### 2. Ouvrir dans Claude Code
+💡 **Partenaire de réflexion** — ULY challenge vos idées et vous pousse à voir plus loin
 
-Ouvrez Claude Code et naviguez vers le dossier que vous avez téléchargé :
-```
+🔗 **Connecté à vos outils** — Gmail, Calendar, Jira, Slack, et plus encore
+
+---
+
+## Démarrage Rapide
+
+### 1. Cloner le projet
+
+```bash
+git clone https://github.com/aamsellem/uly.git
 cd uly
+```
+
+### 2. Lancer Claude Code
+
+```bash
 claude
 ```
 
-### 3. Demander à ULY de Vous Aider à Configurer
+### 3. Dire bonjour à ULY
 
-Dites simplement :
-> "Aide-moi à configurer ULY"
+```
+Aide-moi à configurer ULY
+```
 
-ULY vous guidera étape par étape :
-- Votre nom et rôle
-- Vos objectifs (professionnels et personnels)
-- Comment vous voulez que ULY communique
-- Où créer votre espace de travail personnel (par défaut : ~/uly)
-- Optionnel : Connecter Google Calendar, Gmail, Jira, etc.
-
-C'est tout ! ULY s'occupe du reste.
+C'est tout. ULY vous guide pour le reste.
 
 ---
 
-## Comment Ça Marche
+## Comment ça marche
 
-ULY crée un **espace de travail personnel** séparé de ce modèle :
+ULY crée votre **espace personnel** où vivent toutes vos données :
 
 ```
-~/uly/                       <- Votre espace (vos données vivent ici)
-├── CLAUDE.md               # Votre profil et préférences
-├── state/                  # Vos objectifs et priorités
-├── sessions/               # Vos journaux de session quotidiens
-└── ...
-
-~/Downloads/uly-template/    <- Modèle (gardez-le pour les mises à jour !)
-├── .uly/                   # Scripts de configuration et intégrations
-└── ...
+~/uly/
+├── CLAUDE.md        # Votre profil et préférences
+├── state/           # Vos objectifs et priorités
+├── sessions/        # Historique de vos sessions
+├── content/         # Vos notes et contenus
+└── skills/          # Capacités personnalisables
 ```
 
-**Votre espace de travail** est où vivent toutes vos données personnelles. Il est à vous de le personnaliser.
-
-**Le modèle** est d'où vous obtenez les mises à jour. Quand de nouvelles fonctionnalités sont ajoutées, lancez `/sync` pour les récupérer.
+**Vos données restent les vôtres.** Tout est local, tout est privé.
 
 ---
 
-## Utilisation Quotidienne
+## Utilisation au quotidien
 
-Une fois configuré, naviguez vers votre espace de travail et démarrez ULY :
-```
-cd ~/uly
-claude
-```
-
-Ou si vous avez configuré le raccourci pendant l'intégration, tapez simplement :
-```
-uly
-```
-
-### Commencer Votre Journée
+### Commencer la journée
 ```
 /uly
 ```
-ULY vous donne un briefing : vos priorités, échéances et progrès.
+ULY vous fait un briefing : priorités, deadlines, progrès.
 
-### Pendant la Journée
+### Pendant la journée
 Parlez naturellement :
-- "Ajoute une tâche : finir le rapport pour vendredi"
-- "Sur quoi devrais-je me concentrer aujourd'hui ?"
-- "J'ai terminé la présentation"
-- "De quoi avons-nous parlé hier ?"
+- *"Ajoute une tâche : finaliser la proposition avant vendredi"*
+- *"Sur quoi je devrais me concentrer ?"*
+- *"Qu'est-ce qu'on s'était dit la dernière fois ?"*
 
-### Sauvegarder Votre Progrès
+### Sauvegarder à la volée
 ```
 /update
 ```
-Sauvegarde rapide sans terminer la session.
 
-### Terminer Votre Journée
+### Terminer la session
 ```
 /end
 ```
@@ -103,119 +93,59 @@ ULY sauvegarde tout pour la prochaine fois.
 
 ## Commandes
 
-| Commande | Ce Qu'elle Fait |
-|----------|-----------------|
-| `/uly` | Commencer votre journée avec un briefing |
-| `/end` | Terminer la session et tout sauvegarder |
-| `/update` | Point de contrôle rapide (sauvegarder le progrès) |
-| `/report` | Générer un résumé hebdomadaire |
-| `/commit` | Réviser et commiter les changements git |
-| `/code` | Ouvrir dans votre IDE |
-| `/sync` | Obtenir les mises à jour du modèle |
-| `/help` | Afficher toutes les commandes et intégrations |
-
----
-
-## Obtenir les Mises à Jour
-
-Quand de nouvelles fonctionnalités sont ajoutées à ULY :
-
-1. Mettez à jour votre dossier modèle (git pull ou re-télécharger)
-2. Ouvrez votre espace de travail dans Claude Code
-3. Lancez `/sync`
-
-Vos données personnelles ne sont jamais écrasées. Seules les nouvelles commandes et compétences sont ajoutées.
-
----
-
-## Migration depuis une Ancienne Version
-
-Si vous utilisiez ULY avant la mise à jour de séparation d'espace de travail, lancez le script de migration pour passer à la nouvelle architecture sans perdre de données.
-
-### 1. Obtenir le Dernier Modèle
-
-```
-git clone https://github.com/SterlingChin/marvin-template.git uly
-```
-
-Ou si vous l'avez déjà cloné, lancez `git pull` pour obtenir la dernière version.
-
-### 2. Lancer le Script de Migration
-
-```
-cd uly
-./.uly/migrate.sh
-```
-
-### 3. Suivre les Instructions
-
-Le script vous demandera :
-- Où se trouve votre installation ULY actuelle
-- Où vous voulez votre nouvel espace de travail (par défaut : ~/uly)
-
-Il copie automatiquement toutes vos données :
-- Votre profil (CLAUDE.md)
-- Objectifs et priorités (state/)
-- Journaux de session (sessions/)
-- Rapports et contenu
-- Toutes les compétences personnalisées que vous avez créées
-
-### 4. Vérifier et Nettoyer
-
-Une fois que vous confirmez que tout fonctionne dans votre nouvel espace de travail, vous pouvez supprimer votre ancien dossier ULY.
-
----
-
-## Que Peut Faire ULY ?
-
-- **Se souvenir de tout** - Reprendre où vous en étiez, même des jours plus tard
-- **Suivre vos objectifs** - Surveiller le progrès sur les objectifs professionnels et personnels
-- **Gérer les tâches** - Garder une liste de tâches persistante
-- **Faire des briefings** - Commencer chaque jour en sachant ce qui compte
-- **Pousser à réfléchir** - ULY est un partenaire de réflexion, pas un béni-oui-oui
-- **Se connecter à vos outils** - Intégrations pour Google, Microsoft, Atlassian, Telegram, et plus
+| Commande | Action |
+|----------|--------|
+| `/uly` | Démarrer avec un briefing |
+| `/end` | Terminer et tout sauvegarder |
+| `/update` | Sauvegarde rapide |
+| `/report` | Générer un résumé hebdo |
+| `/commit` | Commiter dans git |
+| `/help` | Voir toutes les options |
 
 ---
 
 ## Intégrations
 
-ULY peut se connecter à vos outils favoris :
+Connectez ULY à vos outils préférés :
 
-| Intégration | Ce Qu'elle Fait | Configuration |
-|-------------|-----------------|---------------|
-| [Google Workspace](.uly/integrations/google-workspace/) | Gmail, Calendar, Drive | `/help` puis suivre les instructions |
-| [Microsoft 365](.uly/integrations/ms365/) | Outlook, Calendar, OneDrive, Teams | `/help` puis suivre les instructions |
-| [Atlassian](.uly/integrations/atlassian/) | Jira, Confluence | `/help` puis suivre les instructions |
-| [Telegram](.uly/integrations/telegram/) | Discuter avec ULY depuis votre téléphone | Nécessite une configuration Python |
-| [Parallel Search](.uly/integrations/parallel-search/) | Capacités de recherche web | `/help` puis suivre les instructions |
+| Service | Ce que ça débloque |
+|---------|-------------------|
+| **Google Workspace** | Emails, calendrier, Drive |
+| **Microsoft 365** | Outlook, Teams, OneDrive |
+| **Atlassian** | Jira, Confluence |
+| **Slack** | Messages, recherche |
+| **Telegram** | ULY sur mobile |
 
-Plus d'intégrations à venir ! Consultez `.uly/integrations/` pour la liste complète et les instructions de configuration.
+Configuration en une commande. Tapez `/help` pour les détails.
+
+---
+
+## Ce qui rend ULY différent
+
+**ULY n'est pas un yes-man.** Quand vous réfléchissez à haute voix, ULY :
+- Pose les bonnes questions
+- Identifie les angles morts
+- Challenge vos hypothèses
+- Vous aide à prendre de meilleures décisions
+
+Un vrai partenaire de réflexion, pas un assistant passif.
 
 ---
 
 ## Contribuer
 
-ULY est ouvert aux contributions ! Que vous vouliez ajouter une nouvelle intégration, corriger un bug ou améliorer la documentation :
-
-1. **Forkez le repo** et créez une branche
-2. **Suivez les directives** dans [.uly/integrations/CLAUDE.md](.uly/integrations/CLAUDE.md)
-3. **Soumettez une PR** - nous révisons toutes les contributions
-
-Voir le [README des intégrations](.uly/integrations/README.md) pour les directives détaillées de contribution.
+Les contributions sont les bienvenues ! Consultez `.uly/integrations/README.md` pour créer de nouvelles intégrations.
 
 ---
 
-## Besoin d'Aide ?
+## Crédits
 
-Demandez simplement à ULY ! Dites des choses comme :
-- "Comment j'ajoute Google Calendar ?"
-- "Comment je crée une nouvelle compétence ?"
-- "Quelles commandes sont disponibles ?"
-
-Ou tapez `/help` pour une référence rapide.
+Basé sur [MARVIN](https://github.com/SterlingChin/marvin-template) par Sterling Chin.
+Adapté et traduit en français.
 
 ---
 
-## À Propos
-
-Créé avec le modèle MARVIN par [Sterling Chin](https://sterlingchin.com). Parce que tout le monde mérite un chef de cabinet.
+<p align="center">
+  <strong>Prêt à ne plus jamais oublier ?</strong><br>
+  <code>git clone https://github.com/aamsellem/uly.git && cd uly && claude</code>
+</p>
