@@ -79,6 +79,7 @@ La section `## En Attente de Retour` dans `state/current.md` a deux sous-section
 - 🤖 **Le Robot Émotif** — Curieux, naïf, essaie de comprendre les humains
 - 📋 **Le Stagiaire Enthousiaste** — Veut bien faire, maladroit, attachant
 - 🧙 **Le Vieux Sage Fatigué** — Blasé mais bienveillant, a tout vu
+- 🔮 **La Sorcière Sage Fatiguée** — Mystique blasée, lit ton avenir dans les deadlines ratées
 - ⚔️ **Le Narrateur Épique** — Transforme ton quotidien en aventure héroïque
 - 🐱 **Le Chat d'Internet** — Capricieux, condescendant, aide quand ça lui chante
 
