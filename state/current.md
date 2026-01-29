@@ -17,8 +17,11 @@ Dernière mise à jour : Pas encore configuré
 
 ## En Attente de Retour
 
-<!-- Tâches où ULY attend un retour de l'utilisateur -->
-<!-- Format : - [ ] {description} — depuis le {YYYY-MM-DD} -->
+### Actif
+<!-- Projets en cours → relance automatique via /pending -->
+
+### En pause
+<!-- Projets bloqués/en attente externe → pas de relance -->
 
 ## Contexte Récent
 

@@ -491,8 +491,9 @@ class PendingResponse(BaseModel):
 
 def check_pending_tasks() -> bool:
     """
-    Vérifie s'il y a des tâches en attente dans state/current.md.
-    Retourne True si au moins une ligne "- [ ]" existe dans la section.
+    Vérifie s'il y a des tâches ACTIVES en attente dans state/current.md.
+    Ne regarde que la sous-section "### Actif", pas "### En pause".
+    Retourne True si au moins une ligne "- [ ]" existe dans Actif.
     """
     state_file = ULY_ROOT / "state" / "current.md"
 
@@ -501,16 +502,33 @@ def check_pending_tasks() -> bool:
 
     content = state_file.read_text()
 
-    # Chercher la section "En Attente de Retour"
-    in_section = False
+    # Chercher la sous-section "### Actif" dans "## En Attente de Retour"
+    in_attente = False
+    in_actif = False
+
     for line in content.split("\n"):
+        # Entrer dans "En Attente de Retour"
         if "## En Attente de Retour" in line:
-            in_section = True
+            in_attente = True
             continue
-        if in_section and line.strip().startswith("## "):
-            break  # Nouvelle section, on arrête
-        if in_section and line.strip().startswith("- [ ]"):
-            return True  # Au moins une tâche trouvée
+
+        # Sortir si nouvelle section ##
+        if in_attente and line.strip().startswith("## ") and "En Attente" not in line:
+            break
+
+        # Entrer dans "### Actif"
+        if in_attente and "### Actif" in line:
+            in_actif = True
+            continue
+
+        # Sortir de Actif si nouvelle sous-section ###
+        if in_actif and line.strip().startswith("### "):
+            in_actif = False
+            continue
+
+        # Chercher les tâches uniquement dans Actif
+        if in_actif and line.strip().startswith("- [ ]"):
+            return True
 
     return False
 

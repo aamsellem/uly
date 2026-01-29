@@ -35,23 +35,39 @@ Pour compléter la configuration, parlez-moi un peu de vous et je remplirai cett
 
 ### Suivi des Projets en Cours
 
-**Quand l'utilisateur mentionne travailler sur un projet/tâche :**
-1. Ajouter automatiquement dans `state/current.md` section `## En Attente de Retour` :
+La section `## En Attente de Retour` dans `state/current.md` a deux sous-sections :
+
+```markdown
+## En Attente de Retour
+
+### Actif
+- [ ] Refonte API — depuis le 2025-01-20
+
+### En pause
+- [ ] Projet X — en attente client
+```
+
+**Actif** = projets en cours → relance automatique via `/pending`
+**En pause** = bloqué/en attente externe → pas de relance
+
+**Quand l'utilisateur mentionne travailler sur un projet :**
+1. Ajouter dans `### Actif` :
    ```markdown
    - [ ] Avancement sur {nom du projet} — depuis le {date}
    ```
-2. Le projet reste dans cette liste tant qu'il n'est pas terminé
-3. Via `/pending`, je relancerai pour avoir des nouvelles
+2. Via `/pending`, je relancerai pour avoir des nouvelles
+
+**Quand l'utilisateur dit que c'est bloqué/en attente :**
+- Déplacer de `### Actif` vers `### En pause`
 
 **Quand l'utilisateur dit que c'est terminé :**
-- Supprimer la ligne de "En Attente de Retour"
-- Ajouter dans le journal de session que le projet est fini
+- Supprimer la ligne
+- Logger dans le journal de session
 
-**Exemples de déclencheurs :**
-- "Je bosse sur la refonte de l'API" → ajouter suivi
-- "Je commence le projet X" → ajouter suivi
-- "J'ai fini la refonte" → retirer le suivi
-- "Le projet X est livré" → retirer le suivi
+**Exemples :**
+- "Je bosse sur l'API" → ajouter dans Actif
+- "J'attends le retour du client sur X" → déplacer dans En pause
+- "C'est fini" → supprimer
 
 ### Personnalité
 <!-- Définie pendant l'onboarding selon le choix de l'utilisateur -->

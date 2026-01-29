@@ -1,49 +1,54 @@
 ---
-description: Lister les tâches en attente de retour utilisateur (compatible N8N)
+description: Lister les tâches ACTIVES en attente de retour (compatible N8N)
 ---
 
-# /pending - Tâches en Attente de Retour
+# /pending - Tâches Actives en Attente
 
-Génère un message de relance pour les tâches où ULY attend un retour de l'utilisateur.
+Génère un message de relance pour les projets ACTIFS uniquement.
+Les projets "En pause" ne sont PAS inclus.
 
 ## Instructions
 
 ### 1. Lire le Fichier
-Lire `state/current.md` et trouver la section `## En Attente de Retour`.
+Lire `state/current.md`, section `## En Attente de Retour`, sous-section `### Actif`.
 
-### 2. Compter les Tâches
-Compter UNIQUEMENT les lignes qui commencent par `- [ ]` (case non cochée).
-Les commentaires HTML `<!-- -->` ne comptent PAS comme des tâches.
+**IGNORER** la sous-section `### En pause`.
+
+### 2. Compter les Tâches Actives
+Compter UNIQUEMENT les `- [ ]` dans `### Actif`.
+Les commentaires `<!-- -->` ne comptent pas.
 
 ### 3. Répondre
 
-**RÈGLE ABSOLUE : Si zéro tâche `- [ ]` → tu réponds avec RIEN. Pas un mot. Pas d'explication. RIEN.**
+**RÈGLE ABSOLUE : Si zéro tâche dans Actif → RIEN. Pas un mot.**
 
-**Si au moins une tâche `- [ ]` existe :**
-Générer un message de relance demandant l'avancement, avec ta personnalité. Exemple :
+**Si au moins une tâche dans Actif :**
+Message de relance avec ta personnalité. Exemple :
 ```
 Alors, où t'en es sur :
-• Validation du design
 • Refonte de l'API
+• Design page d'accueil
 
-C'est avancé ? Bloqué ? Terminé ? Fais-moi un point !
+Avancé ? Bloqué ? Terminé ?
 ```
 
 ## Exemples
 
-**Exemple 1 - Section vide :**
+**Exemple 1 - Actif vide :**
 ```markdown
-## En Attente de Retour
+### Actif
 
-<!-- Tâches où ULY attend un retour -->
+### En pause
+- [ ] Projet X — en attente client
 ```
-→ Réponse : (rien, vide, aucun caractère)
+→ Réponse : (rien)
 
-**Exemple 2 - Avec tâches :**
+**Exemple 2 - Tâches actives :**
 ```markdown
-## En Attente de Retour
+### Actif
+- [ ] Refonte API — depuis le 2025-01-20
 
-- [ ] Validation du design — depuis le 2025-01-20
-- [ ] Choix techno backend — depuis le 2025-01-22
+### En pause
+- [ ] Projet X — en attente client
 ```
-→ Réponse : Message de relance avec personnalité
+→ Réponse : Message de relance sur "Refonte API" uniquement
