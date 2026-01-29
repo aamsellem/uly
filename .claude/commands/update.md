@@ -1,43 +1,43 @@
 ---
-description: Quick checkpoint without ending session
+description: Point de contrôle rapide sans terminer la session
 ---
 
-# /update - Quick Context Checkpoint
+# /update - Point de Contrôle Rapide
 
-Lightweight save without ending the session. Use frequently to preserve context.
+Sauvegarde légère sans terminer la session. À utiliser fréquemment pour préserver le contexte.
 
 ## Instructions
 
-### 1. Identify What Changed
-Quickly scan the recent conversation for:
-- Topics worked on
-- Decisions made
-- Files created/modified
-- Any state changes needed
+### 1. Identifier Ce Qui a Changé
+Scanner rapidement la conversation récente pour :
+- Sujets travaillés
+- Décisions prises
+- Fichiers créés/modifiés
+- Tout changement d'état nécessaire
 
-Keep it brief. No full summary needed.
+Rester bref. Pas besoin de résumé complet.
 
-### 2. Append to Session Log
-Get today's date: `date +%Y-%m-%d`
+### 2. Ajouter au Journal de Session
+Obtenir la date d'aujourd'hui : `date +%Y-%m-%d`
 
-Append to `sessions/{TODAY}.md`:
+Ajouter à `sessions/{AUJOURDHUI}.md` :
 ```markdown
-## Update: {TIME}
-- {what was worked on, 1-3 bullets}
+## Mise à jour : {HEURE}
+- {sur quoi on a travaillé, 1-3 points}
 ```
 
-If file doesn't exist, create with header: `# Session Log: {TODAY}`
+Si le fichier n'existe pas, créer avec l'en-tête : `# Journal de Session : {AUJOURDHUI}`
 
-### 3. Update State (if needed)
-Only update `state/current.md` if something actually changed:
-- New open thread
-- Completed item
-- Changed priority
-- New task discovered
+### 3. Mettre à Jour l'État (si nécessaire)
+Ne mettre à jour `state/current.md` que si quelque chose a vraiment changé :
+- Nouveau fil ouvert
+- Élément terminé
+- Priorité modifiée
+- Nouvelle tâche découverte
 
-Skip if nothing material changed.
+Passer si rien de matériel n'a changé.
 
-### 4. Confirm (minimal)
-One line: "Checkpointed: {brief description}"
+### 4. Confirmer (minimal)
+Une ligne : "Sauvegardé : {brève description}"
 
-No summary. No "next actions" list. Just confirm the save.
+Pas de résumé. Pas de liste "prochaines actions". Juste confirmer la sauvegarde.

@@ -1,27 +1,27 @@
-# Content Log
+# Journal de Contenu
 
-All shipped content, tracked for review against goals.
+Tout le contenu publié, suivi pour révision par rapport aux objectifs.
 
-**Goals ({{YEAR}})**:
-<!-- Match your monthly targets from CLAUDE.md -->
-- {{X}} {{content type 1}} ({{X}}/month)
-- {{X}} {{content type 2}} ({{X}}/month)
-
----
-
-## {{YEAR}}-{{MONTH}}
-
-*Add entries as you ship content*
+**Objectifs ({{ANNÉE}})** :
+<!-- Correspondre à vos cibles mensuelles depuis CLAUDE.md -->
+- {{X}} {{type de contenu 1}} ({{X}}/mois)
+- {{X}} {{type de contenu 2}} ({{X}}/mois)
 
 ---
 
-**Format:**
+## {{ANNÉE}}-{{MOIS}}
+
+*Ajoutez des entrées au fur et à mesure que vous publiez du contenu*
+
+---
+
+**Format :**
 ```
-### YYYY-MM-DD
-- **[TYPE]** "Title"
-  - URL: {link}
-  - Goal: {Monthly target 1/X, etc.}
-  - Notes: {optional}
+### AAAA-MM-JJ
+- **[TYPE]** "Titre"
+  - URL : {lien}
+  - Objectif : {Cible mensuelle 1/X, etc.}
+  - Notes : {optionnel}
 ```
 
-**Types:** VIDEO, ARTICLE, POST, EVENT, PODCAST, CODE, OTHER
+**Types :** VIDÉO, ARTICLE, POST, ÉVÉNEMENT, PODCAST, CODE, AUTRE

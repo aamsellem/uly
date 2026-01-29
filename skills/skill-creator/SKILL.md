@@ -1,133 +1,133 @@
 ---
 name: skill-creator
 description: |
-  Create new MARVIN skills on request. Use when user says "give yourself the ability to X" or "create a skill for Y". Generates proper skill structure with SKILL.md.
+  Créer de nouvelles compétences ULY sur demande. Utiliser quand l'utilisateur dit "donne-toi la capacité de X" ou "crée une compétence pour Y". Génère une structure de compétence appropriée avec SKILL.md.
 license: MIT
-compatibility: marvin
+compatibility: uly
 metadata:
-  marvin-category: meta
+  uly-category: meta
   user-invocable: false
   slash-command: null
   model: default
   proactive: false
 ---
 
-# Skill Creator Skill
+# Compétence Créateur de Compétences
 
-Create new MARVIN skills based on user requests.
+Créer de nouvelles compétences ULY basées sur les demandes utilisateur.
 
-## When to Use
+## Quand Utiliser
 
-Trigger phrases:
-- "Give yourself the ability to..."
-- "Create a skill for..."
-- "Add a workflow for..."
-- "I want MARVIN to be able to..."
+Phrases déclencheuses :
+- "Donne-toi la capacité de..."
+- "Crée une compétence pour..."
+- "Ajoute un workflow pour..."
+- "Je veux que ULY puisse..."
 
-## Process
+## Processus
 
-### Step 1: Understand the Request
-Clarify:
-- What should the skill do?
-- When should it trigger?
-- What inputs does it need?
-- What output should it produce?
+### Étape 1 : Comprendre la Demande
+Clarifier :
+- Que doit faire la compétence ?
+- Quand doit-elle se déclencher ?
+- De quelles entrées a-t-elle besoin ?
+- Quelle sortie doit-elle produire ?
 
-### Step 2: Design the Skill
-Determine:
-- **name**: Short, kebab-case identifier (e.g., `weekly-review`)
-- **description**: Clear explanation of purpose and triggers
-- **category**: session, work, content, research, events, communication, meta
-- **user-invocable**: Does it have a slash command?
-- **slash-command**: If yes, what command? (e.g., `/review`)
-- **proactive**: Should MARVIN detect and trigger automatically?
+### Étape 2 : Concevoir la Compétence
+Déterminer :
+- **name** : Identifiant court en kebab-case (ex: `revue-hebdo`)
+- **description** : Explication claire du but et déclencheurs
+- **category** : session, work, content, research, events, communication, meta
+- **user-invocable** : A-t-elle une commande slash ?
+- **slash-command** : Si oui, quelle commande ? (ex: `/revue`)
+- **proactive** : ULY doit-il détecter et déclencher automatiquement ?
 
-### Step 3: Create Skill Directory
+### Étape 3 : Créer le Répertoire de Compétence
 ```bash
-mkdir -p skills/{skill-name}
+mkdir -p skills/{nom-competence}
 ```
 
-### Step 4: Write SKILL.md
-Create `skills/{skill-name}/SKILL.md` with:
+### Étape 4 : Écrire SKILL.md
+Créer `skills/{nom-competence}/SKILL.md` avec :
 
 ```markdown
 ---
-name: {skill-name}
+name: {nom-competence}
 description: |
-  {What this skill does and when to use it.}
+  {Ce que fait cette compétence et quand l'utiliser.}
 license: MIT
-compatibility: marvin
+compatibility: uly
 metadata:
-  marvin-category: {category}
+  uly-category: {category}
   user-invocable: {true|false}
-  slash-command: {/command or null}
+  slash-command: {/commande ou null}
   model: default
   proactive: {true|false}
 ---
 
-# {Skill Title}
+# {Titre de la Compétence}
 
-{Brief description}
+{Brève description}
 
-## When to Use
+## Quand Utiliser
 
-- {Trigger condition 1}
-- {Trigger condition 2}
+- {Condition de déclenchement 1}
+- {Condition de déclenchement 2}
 
-## Process
+## Processus
 
-### Step 1: {First Step}
+### Étape 1 : {Première Étape}
 {Description}
 
-### Step 2: {Second Step}
+### Étape 2 : {Deuxième Étape}
 {Description}
 
-## Output Format
+## Format de Sortie
 
-{Expected output}
+{Sortie attendue}
 
 ---
 
-*Skill created: {TODAY}*
+*Compétence créée : {AUJOURDHUI}*
 ```
 
-### Step 5: Add Scripts (if needed)
-If the skill requires code:
+### Étape 5 : Ajouter des Scripts (si nécessaire)
+Si la compétence nécessite du code :
 ```bash
-mkdir -p skills/{skill-name}/scripts
+mkdir -p skills/{nom-competence}/scripts
 ```
 
-Create necessary scripts in that directory.
+Créer les scripts nécessaires dans ce répertoire.
 
-### Step 6: Update Skill Index
-Add the new skill to the Skill Index in `CLAUDE.md`:
+### Étape 6 : Mettre à Jour l'Index des Compétences
+Ajouter la nouvelle compétence à l'Index des Compétences dans `CLAUDE.md` :
 
 ```markdown
-| `{skill-name}` | {triggers} | {description} |
+| `{nom-competence}` | {déclencheurs} | {description} |
 ```
 
-### Step 7: Confirm Creation
-Tell the user:
-- Skill created at `skills/{skill-name}/SKILL.md`
-- How to trigger it
-- Ready to use immediately
+### Étape 7 : Confirmer la Création
+Dire à l'utilisateur :
+- Compétence créée à `skills/{nom-competence}/SKILL.md`
+- Comment la déclencher
+- Prête à utiliser immédiatement
 
-## Output Format
+## Format de Sortie
 
 ```
-Created skill: **{skill-name}**
-- Location: `skills/{skill-name}/SKILL.md`
-- Trigger: {how to use it}
-- Category: {category}
+Compétence créée : **{nom-competence}**
+- Emplacement : `skills/{nom-competence}/SKILL.md`
+- Déclencheur : {comment l'utiliser}
+- Catégorie : {category}
 
-The skill is ready to use.
+La compétence est prête à utiliser.
 ```
 
 ## Notes
-- Use the template at `skills/_template/SKILL.md` as a starting point
-- Keep skills focused on one task
-- Include clear trigger conditions so MARVIN knows when to use it
+- Utiliser le modèle à `skills/_template/SKILL.md` comme point de départ
+- Garder les compétences focalisées sur une tâche
+- Inclure des conditions de déclenchement claires pour que ULY sache quand l'utiliser
 
 ---
 
-*Skill created: 2026-01-22*
+*Compétence créée : 2026-01-22*

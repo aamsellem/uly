@@ -1,48 +1,48 @@
 ---
 name: template-skill
 description: |
-  Template for creating new MARVIN skills. Copy this directory and customize.
-  Include what the skill does and when to use it in this description.
+  Modèle pour créer de nouvelles compétences ULY. Copiez ce répertoire et personnalisez.
+  Incluez ce que fait la compétence et quand l'utiliser dans cette description.
 license: MIT
-compatibility: marvin
+compatibility: uly
 metadata:
-  marvin-category: template
+  uly-category: template
   user-invocable: false
   slash-command: null
   model: default
   proactive: false
 ---
 
-# Skill Name
+# Nom de la Compétence
 
-Brief description of what this skill does.
+Brève description de ce que fait cette compétence.
 
-## When to Use
+## Quand Utiliser
 
 - Condition 1
 - Condition 2
 - Condition 3
 
-## Process
+## Processus
 
-### Step 1: First Step
-Description of the first step.
+### Étape 1 : Première Étape
+Description de la première étape.
 
-### Step 2: Second Step
-Description of the second step.
+### Étape 2 : Deuxième Étape
+Description de la deuxième étape.
 
-### Step 3: Third Step
-Description of the third step.
+### Étape 3 : Troisième Étape
+Description de la troisième étape.
 
-## Output Format
+## Format de Sortie
 
-Describe the expected output format.
+Décrivez le format de sortie attendu.
 
-## Examples
+## Exemples
 
-**Input:** Example input
-**Output:** Example output
+**Entrée :** Exemple d'entrée
+**Sortie :** Exemple de sortie
 
 ---
 
-*Skill created: YYYY-MM-DD*
+*Compétence créée : AAAA-MM-JJ*

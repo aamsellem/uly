@@ -1,82 +1,82 @@
 ---
-description: Sync updates from the MARVIN template
+description: Synchroniser les mises à jour depuis le modèle ULY
 ---
 
-# /sync - Get Updates
+# /sync - Obtenir les Mises à Jour
 
-Pull new features and commands from the MARVIN template into your workspace.
+Récupérer les nouvelles fonctionnalités et commandes depuis le modèle ULY dans votre espace de travail.
 
 ## Instructions
 
-### 1. Find the Template
+### 1. Trouver le Modèle
 
-Read `.marvin-source` to get the path to the template directory:
+Lire `.uly-source` pour obtenir le chemin vers le répertoire modèle :
 ```bash
-cat .marvin-source
+cat .uly-source
 ```
 
-If this file doesn't exist, tell the user:
-> "I can't find your template source. This usually means you set up MARVIN manually. Would you like to tell me where your template folder is?"
+Si ce fichier n'existe pas, dire à l'utilisateur :
+> "Je ne trouve pas la source de votre modèle. Cela signifie généralement que vous avez configuré ULY manuellement. Voulez-vous me dire où se trouve votre dossier modèle ?"
 
-### 2. Check What's New
+### 2. Vérifier Ce Qui Est Nouveau
 
-Compare the template's files with the user's workspace:
+Comparer les fichiers du modèle avec l'espace de travail de l'utilisateur :
 
-**Files to sync:**
-- `.claude/commands/` - Slash commands
-- `skills/` - MARVIN capabilities
+**Fichiers à synchroniser :**
+- `.claude/commands/` - Commandes slash
+- `skills/` - Capacités ULY
 
-**Files to NEVER sync (user's data):**
-- `state/` - User's goals and current state
-- `sessions/` - Session logs
-- `reports/` - Weekly reports
-- `content/` - User's content
-- `CLAUDE.md` - User's profile
-- `.env` - User's secrets
+**Fichiers à NE JAMAIS synchroniser (données utilisateur) :**
+- `state/` - Objectifs et état actuel de l'utilisateur
+- `sessions/` - Journaux de session
+- `reports/` - Rapports hebdomadaires
+- `content/` - Contenu de l'utilisateur
+- `CLAUDE.md` - Profil de l'utilisateur
+- `.env` - Secrets de l'utilisateur
 
-### 3. Identify Changes
+### 3. Identifier les Changements
 
-For each file in the template's `.claude/commands/` and `skills/`:
-- If it doesn't exist in the workspace: NEW
-- If it exists but differs: CONFLICT (user's version wins)
-- If it's identical: UNCHANGED
+Pour chaque fichier dans `.claude/commands/` et `skills/` du modèle :
+- S'il n'existe pas dans l'espace de travail : NOUVEAU
+- S'il existe mais diffère : CONFLIT (la version de l'utilisateur gagne)
+- S'il est identique : INCHANGÉ
 
-### 4. Show What's Available
+### 4. Montrer Ce Qui Est Disponible
 
-Display something like:
+Afficher quelque chose comme :
 
 ```
-## Updates Available
+## Mises à Jour Disponibles
 
-**New commands:**
-- /newcommand - Description
+**Nouvelles commandes :**
+- /nouvellecommande - Description
 
-**New skills:**
-- new-skill/ - Description
+**Nouvelles compétences :**
+- nouvelle-competence/ - Description
 
-**Conflicts (your version kept):**
-- /existingcommand - Template has updates, but keeping yours
+**Conflits (votre version conservée) :**
+- /commandeexistante - Le modèle a des mises à jour, mais on garde la vôtre
 
-No changes to your data (goals, sessions, etc.) - those are always safe.
+Aucun changement à vos données (objectifs, sessions, etc.) - celles-ci sont toujours en sécurité.
 ```
 
-### 5. Apply Updates
+### 5. Appliquer les Mises à Jour
 
-Ask: "Would you like me to add the new commands/skills?"
+Demander : "Voulez-vous que j'ajoute les nouvelles commandes/compétences ?"
 
-If yes, copy the NEW files only. Never overwrite existing files.
+Si oui, copier uniquement les fichiers NOUVEAUX. Ne jamais écraser les fichiers existants.
 
 ```bash
-# Example for a new command
-cp {template}/.claude/commands/newcommand.md .claude/commands/
+# Exemple pour une nouvelle commande
+cp {modele}/.claude/commands/nouvellecommande.md .claude/commands/
 ```
 
-### 6. Handle Conflicts
+### 6. Gérer les Conflits
 
-If there are conflicts, explain:
-> "I found some commands that exist in both places. I kept your versions since you may have customized them. If you want the template version instead, let me know which ones and I'll update them."
+S'il y a des conflits, expliquer :
+> "J'ai trouvé des commandes qui existent aux deux endroits. J'ai gardé vos versions puisque vous les avez peut-être personnalisées. Si vous voulez la version du modèle à la place, dites-moi lesquelles et je les mettrai à jour."
 
-### 7. Finish
+### 7. Terminer
 
-After syncing:
-> "All done! You now have the latest MARVIN features. Type `/help` to see what's available."
+Après la synchronisation :
+> "Terminé ! Vous avez maintenant les dernières fonctionnalités ULY. Tapez `/help` pour voir ce qui est disponible."

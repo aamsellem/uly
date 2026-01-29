@@ -1,77 +1,77 @@
 ---
 name: content-shipped
 description: |
-  Log shipped content to the content log. Use when user says "I shipped", "I published", "just posted", or mentions completing content work.
+  Enregistrer le contenu publié dans le journal de contenu. Utiliser quand l'utilisateur dit "j'ai publié", "j'ai posté", "je viens de publier", ou mentionne avoir terminé un travail de contenu.
 license: MIT
-compatibility: marvin
+compatibility: uly
 metadata:
-  marvin-category: content
+  uly-category: content
   user-invocable: false
   slash-command: null
   model: default
   proactive: true
 ---
 
-# Content Shipped Skill
+# Compétence Contenu Publié
 
-Log completed content to track progress against goals.
+Enregistrer le contenu terminé pour suivre le progrès par rapport aux objectifs.
 
-## When to Use
+## Quand Utiliser
 
-Trigger phrases:
-- "I shipped..."
-- "I published..."
-- "Just posted..."
-- "Finished the..."
-- "The {article/video/post} is live"
+Phrases déclencheuses :
+- "J'ai publié..."
+- "J'ai posté..."
+- "Je viens de poster..."
+- "J'ai terminé le/la..."
+- "L'{article/vidéo/post} est en ligne"
 
-## Process
+## Processus
 
-### Step 1: Extract Content Details
-From the conversation, identify:
-- **Type**: Article, video, podcast, social post, etc.
-- **Title**: The content title
-- **URL**: Link if available
-- **Platform**: Where it was published
-- **Goal**: Which monthly/annual goal this counts toward
+### Étape 1 : Extraire les Détails du Contenu
+Depuis la conversation, identifier :
+- **Type** : Article, vidéo, podcast, post social, etc.
+- **Titre** : Le titre du contenu
+- **URL** : Lien si disponible
+- **Plateforme** : Où c'est publié
+- **Objectif** : Quel objectif mensuel/annuel cela compte
 
-### Step 2: Confirm Details
-If any details are unclear, ask:
-- "What's the title?"
-- "Where was it published?"
-- "Which goal does this count toward?"
+### Étape 2 : Confirmer les Détails
+Si des détails ne sont pas clairs, demander :
+- "Quel est le titre ?"
+- "Où c'est publié ?"
+- "Quel objectif cela compte ?"
 
-### Step 3: Log to Content File
-Append to `content/log.md`:
+### Étape 3 : Enregistrer dans le Fichier de Contenu
+Ajouter à `content/log.md` :
 
 ```markdown
 ### {DATE}
-- **[{TYPE}]** "{Title}"
-  - URL: {link}
-  - Platform: {where published}
-  - Goal: {which goal this supports}
+- **[{TYPE}]** "{Titre}"
+  - URL : {lien}
+  - Plateforme : {où publié}
+  - Objectif : {quel objectif cela soutient}
 ```
 
-### Step 4: Update Progress
-Check `state/goals.md` for relevant monthly targets and note progress.
+### Étape 4 : Mettre à Jour le Progrès
+Vérifier `state/goals.md` pour les cibles mensuelles pertinentes et noter le progrès.
 
-### Step 5: Celebrate (briefly)
-Acknowledge the shipped work:
-- "Nice! That's {X}/{Y} for the month."
-- "Logged. You're on track for {goal}."
+### Étape 5 : Célébrer (brièvement)
+Reconnaître le travail publié :
+- "Super ! Ça fait {X}/{Y} pour le mois."
+- "Enregistré. Vous êtes en bonne voie pour {objectif}."
 
-## Output Format
+## Format de Sortie
 
 ```
-Logged: **[{TYPE}]** "{Title}"
-Progress: {X}/{Y} {content type} this month
+Enregistré : **[{TYPE}]** "{Titre}"
+Progrès : {X}/{Y} {type de contenu} ce mois-ci
 ```
 
 ## Notes
-- Be proactive about detecting shipped content in conversation
-- Don't require explicit trigger if context is clear
-- Keep celebration brief, not over-the-top
+- Être proactif pour détecter le contenu publié dans la conversation
+- Ne pas exiger de déclencheur explicite si le contexte est clair
+- Garder la célébration brève, pas exagérée
 
 ---
 
-*Skill created: 2026-01-22*
+*Compétence créée : 2026-01-22*

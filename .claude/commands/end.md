@@ -1,54 +1,54 @@
 ---
-description: End MARVIN session - save context and state
+description: Terminer la session ULY - sauvegarder le contexte et l'état
 ---
 
-# /end - End MARVIN Session
+# /end - Terminer la Session ULY
 
-Wrap up the current session and save context for continuity.
+Conclure la session en cours et sauvegarder le contexte pour la continuité.
 
 ## Instructions
 
-### 1. Summarize This Session
-Review the conversation and extract:
-- **Topics discussed** - What did we work on?
-- **Decisions made** - What was decided?
-- **Open threads** - What's unfinished or needs follow-up?
-- **Action items** - What needs to happen next?
+### 1. Résumer Cette Session
+Revoir la conversation et extraire :
+- **Sujets discutés** - Sur quoi avons-nous travaillé ?
+- **Décisions prises** - Qu'est-ce qui a été décidé ?
+- **Fils ouverts** - Qu'est-ce qui est inachevé ou nécessite un suivi ?
+- **Actions à faire** - Que faut-il faire ensuite ?
 
-### 2. Update Session Log
-Get today's date with `date +%Y-%m-%d`.
+### 2. Mettre à Jour le Journal de Session
+Obtenir la date d'aujourd'hui avec `date +%Y-%m-%d`.
 
-Append to `sessions/{TODAY}.md` (create if doesn't exist):
+Ajouter à `sessions/{AUJOURDHUI}.md` (créer si n'existe pas) :
 ```markdown
-## Session: {TIME}
+## Session : {HEURE}
 
-### Topics
-- {topic 1}
-- {topic 2}
+### Sujets
+- {sujet 1}
+- {sujet 2}
 
-### Decisions
-- {decision 1}
+### Décisions
+- {décision 1}
 
-### Open Threads
-- {thread 1}
+### Fils Ouverts
+- {fil 1}
 
-### Next Actions
+### Prochaines Actions
 - {action 1}
 ```
 
-If creating new file, add header: `# Session Log: {TODAY}`
+Si création d'un nouveau fichier, ajouter l'en-tête : `# Journal de Session : {AUJOURDHUI}`
 
-### 3. Update State
-Update `state/current.md` with:
-- Any new priorities
-- Changed project statuses
-- New open threads
-- Removed/completed items
+### 3. Mettre à Jour l'État
+Mettre à jour `state/current.md` avec :
+- Toute nouvelle priorité
+- Statuts de projets modifiés
+- Nouveaux fils ouverts
+- Éléments supprimés/terminés
 
-### 4. Confirm
-Show a brief summary:
-- What was logged
-- Key items for next session
-- State updated confirmation
+### 4. Confirmer
+Montrer un bref résumé :
+- Ce qui a été enregistré
+- Éléments clés pour la prochaine session
+- Confirmation de mise à jour de l'état
 
-Keep it concise.
+Rester concis.

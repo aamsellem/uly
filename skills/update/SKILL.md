@@ -1,76 +1,76 @@
 ---
 name: update
 description: |
-  Quick context checkpoint without ending session. Use when user types /update. Saves progress to session log and updates state if needed.
+  Point de contrôle rapide du contexte sans terminer la session. Utiliser quand l'utilisateur tape /update. Sauvegarde le progrès dans le journal de session et met à jour l'état si nécessaire.
 license: MIT
-compatibility: marvin
+compatibility: uly
 metadata:
-  marvin-category: session
+  uly-category: session
   user-invocable: true
   slash-command: /update
   model: default
   proactive: false
 ---
 
-# Update Skill
+# Compétence Mise à Jour
 
-Lightweight save without ending the session. Use frequently to preserve context.
+Sauvegarde légère sans terminer la session. Utiliser fréquemment pour préserver le contexte.
 
-## When to Use
+## Quand Utiliser
 
-- User types `/update`
-- After finishing a chunk of work
-- Before switching contexts
-- Every hour or so during long sessions
-- When context is running low
+- L'utilisateur tape `/update`
+- Après avoir terminé un bloc de travail
+- Avant de changer de contexte
+- Environ toutes les heures pendant les longues sessions
+- Quand le contexte devient limité
 
-## Process
+## Processus
 
-### Step 1: Identify What Changed
-Quickly scan the recent conversation for:
-- Topics worked on
-- Decisions made
-- Files created/modified
-- Any state changes needed
+### Étape 1 : Identifier Ce Qui a Changé
+Scanner rapidement la conversation récente pour :
+- Sujets travaillés
+- Décisions prises
+- Fichiers créés/modifiés
+- Tout changement d'état nécessaire
 
-Keep it brief. No full summary needed.
+Rester bref. Pas besoin de résumé complet.
 
-### Step 2: Append to Session Log
-Get today's date: `date +%Y-%m-%d`
+### Étape 2 : Ajouter au Journal de Session
+Obtenir la date d'aujourd'hui : `date +%Y-%m-%d`
 
-Append to `sessions/{TODAY}.md`:
+Ajouter à `sessions/{AUJOURDHUI}.md` :
 ```markdown
-## Update: {TIME}
-- {what was worked on, 1-3 bullets}
+## Mise à jour : {HEURE}
+- {sur quoi on a travaillé, 1-3 points}
 ```
 
-If file doesn't exist, create with header: `# Session Log: {TODAY}`
+Si le fichier n'existe pas, créer avec l'en-tête : `# Journal de Session : {AUJOURDHUI}`
 
-### Step 3: Update State (if needed)
-Only update `state/current.md` if something actually changed:
-- New open thread
-- Completed item
-- Changed priority
-- New project/task discovered
+### Étape 3 : Mettre à Jour l'État (si nécessaire)
+Ne mettre à jour `state/current.md` que si quelque chose a vraiment changé :
+- Nouveau fil ouvert
+- Élément terminé
+- Priorité modifiée
+- Nouveau projet/tâche découvert
 
-Skip if nothing material changed.
+Passer si rien de matériel n'a changé.
 
-### Step 4: Confirm (minimal)
-One line: "Checkpointed: {brief description}"
+### Étape 4 : Confirmer (minimal)
+Une ligne : "Sauvegardé : {brève description}"
 
-No summary. No "next actions" list. Just confirm the save.
+Pas de résumé. Pas de liste "prochaines actions". Juste confirmer la sauvegarde.
 
-## Output Format
+## Format de Sortie
 
 ```
-Checkpointed: {2-5 word description of what was saved}
+Sauvegardé : {description en 2-5 mots de ce qui a été sauvegardé}
 ```
 
 ## Notes
-- This is intentionally lightweight
-- Don't use for full session wrap-up (use `/end` for that)
-- Multiple updates per day append to the same session file
+- C'est intentionnellement léger
+- Ne pas utiliser pour une clôture complète de session (utiliser `/end` pour ça)
+- Plusieurs mises à jour par jour s'ajoutent au même fichier de session
 
 ---
 
-*Skill created: 2026-01-22*
+*Compétence créée : 2026-01-22*

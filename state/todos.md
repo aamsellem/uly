@@ -1,33 +1,33 @@
-# Todos
+# Tâches
 
-Persistent task list that carries across MARVIN sessions.
+Liste de tâches persistante qui se maintient entre les sessions ULY.
 
-**Last updated**: {{DATE}}
+**Dernière mise à jour** : {{DATE}}
 
 ---
 
-## Active
+## Actives
 
-| Task | Added | Context |
-|------|-------|---------|
+| Tâche | Ajoutée | Contexte |
+|-------|---------|----------|
 | | | |
 
 ---
 
-## Completed
+## Terminées
 
-| Task | Completed | Notes |
-|------|-----------|-------|
-| *None yet* | | |
+| Tâche | Terminée | Notes |
+|-------|----------|-------|
+| *Aucune pour l'instant* | | |
 
 ---
 
-## Follow-ups
+## Suivis
 
-| Item | Review Date | Notes |
-|------|-------------|-------|
+| Élément | Date de Révision | Notes |
+|---------|-----------------|-------|
 | | | |
 
 ---
 
-*This file is updated by MARVIN at session start (load) and session end (save).*
+*Ce fichier est mis à jour par ULY au début de session (chargement) et à la fin de session (sauvegarde).*

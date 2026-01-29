@@ -1,42 +1,42 @@
-# Goals
+# Objectifs
 
-<!-- SETUP NOT COMPLETE: This file has placeholder content -->
-<!-- MARVIN will update this during setup -->
+<!-- CONFIGURATION NON TERMINÉE : Ce fichier contient du contenu placeholder -->
+<!-- ULY mettra ceci à jour pendant la configuration -->
 
-Last updated: Not yet configured
-
----
-
-## Work Goals
-
-Goals related to your job - KPIs, projects, professional development, team goals.
-
-*Examples:*
-- Hit Q1 revenue target
-- Ship the new feature by March
-- Get promoted to senior
-- Improve team velocity by 20%
+Dernière mise à jour : Pas encore configuré
 
 ---
 
-## Personal Goals
+## Objectifs Professionnels
 
-Goals for life outside work - health, hobbies, relationships, personal growth.
+Objectifs liés à votre travail - KPIs, projets, développement professionnel, objectifs d'équipe.
 
-*Examples:*
-- Walk 10k steps daily
-- Write a blog post every week
-- Read 24 books this year
-- Learn to play guitar
-
----
-
-## Tracking
-
-| Goal | Type | Status | Notes |
-|------|------|--------|-------|
-| Complete MARVIN setup | - | In progress | |
+*Exemples :*
+- Atteindre l'objectif de revenus Q1
+- Livrer la nouvelle fonctionnalité d'ici mars
+- Être promu senior
+- Améliorer la vélocité de l'équipe de 20%
 
 ---
 
-*Tell MARVIN about your goals during setup, and they'll appear here. You can update these anytime - just say "let's update my goals."*
+## Objectifs Personnels
+
+Objectifs pour la vie hors travail - santé, hobbies, relations, développement personnel.
+
+*Exemples :*
+- Marcher 10k pas quotidiennement
+- Écrire un article de blog chaque semaine
+- Lire 24 livres cette année
+- Apprendre à jouer de la guitare
+
+---
+
+## Suivi
+
+| Objectif | Type | Statut | Notes |
+|----------|------|--------|-------|
+| Compléter la configuration ULY | - | En cours | |
+
+---
+
+*Parlez à ULY de vos objectifs pendant la configuration, et ils apparaîtront ici. Vous pouvez les mettre à jour à tout moment - dites simplement "mettons à jour mes objectifs."*

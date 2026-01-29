@@ -1,77 +1,77 @@
 ---
 name: daily-briefing
 description: |
-  Generate daily briefing with priorities, progress, and alerts. Used as part of session-start or when user asks "what's on today". Internal skill supporting the marvin skill.
+  Générer un briefing quotidien avec priorités, progrès et alertes. Utilisé dans le cadre du démarrage de session ou quand l'utilisateur demande "qu'est-ce qu'il y a aujourd'hui". Compétence interne supportant la compétence uly.
 license: MIT
-compatibility: marvin
+compatibility: uly
 metadata:
-  marvin-category: session
+  uly-category: session
   user-invocable: false
   slash-command: null
   model: default
   proactive: false
 ---
 
-# Daily Briefing Skill
+# Compétence Briefing Quotidien
 
-Generate comprehensive daily briefing with priorities, progress, and alerts.
+Générer un briefing quotidien complet avec priorités, progrès et alertes.
 
-## When to Use
+## Quand Utiliser
 
-- Part of `marvin` skill (session start)
-- User asks "what's on today" or "daily briefing"
-- Morning check-in requests
+- Dans le cadre de la compétence `uly` (démarrage de session)
+- L'utilisateur demande "qu'est-ce qu'il y a aujourd'hui" ou "briefing quotidien"
+- Demandes de check-in matinal
 
-## Process
+## Processus
 
-### Step 1: Calendar Overview (if available)
-- Today's events with times
-- Tomorrow's events (preview)
-- Next 7 days: any important deadlines
+### Étape 1 : Aperçu du Calendrier (si disponible)
+- Événements d'aujourd'hui avec heures
+- Événements de demain (aperçu)
+- 7 prochains jours : toutes échéances importantes
 
-### Step 2: Task Status
-From `state/current.md`:
-- Active priorities
-- Overdue items
-- Due today
-- Open threads needing attention
+### Étape 2 : Statut des Tâches
+Depuis `state/current.md` :
+- Priorités actives
+- Éléments en retard
+- À faire aujourd'hui
+- Fils ouverts nécessitant attention
 
-### Step 3: Progress Check
-For current month from `state/goals.md`:
-- Progress against each goal
-- Days remaining in month
+### Étape 3 : Vérification du Progrès
+Pour le mois en cours depuis `state/goals.md` :
+- Progrès par rapport à chaque objectif
+- Jours restants dans le mois
 
-If behind pace, flag it.
+Si en retard sur le rythme, le signaler.
 
-### Step 4: Open Threads
-From `state/current.md`:
-- Anything waiting on follow-up
-- Stale threads (no update > 5 days)
+### Étape 4 : Fils Ouverts
+Depuis `state/current.md` :
+- Tout ce qui attend un suivi
+- Fils périmés (pas de mise à jour > 5 jours)
 
-### Step 5: Proactive Suggestions
-Based on patterns:
-- "You haven't made progress on {goal} this week"
-- "Deadline for {item} is in 3 days"
-- "Monthly review coming up — want to schedule?"
+### Étape 5 : Suggestions Proactives
+Basées sur les patterns :
+- "Vous n'avez pas progressé sur {objectif} cette semaine"
+- "L'échéance pour {élément} est dans 3 jours"
+- "Revue mensuelle à venir — voulez-vous la planifier ?"
 
-## Output Format
+## Format de Sortie
 
-Keep concise. Structure as:
+Rester concis. Structurer comme :
 ```
-## {Day}, {Date}
+## {Jour}, {Date}
 
-**Today**: {summary}
+**Aujourd'hui** : {résumé}
 
-**Alerts**:
-- {any urgent items}
+**Alertes** :
+- {éléments urgents}
 
-**Progress**: {goal status summary}
+**Progrès** : {résumé du statut des objectifs}
 
-**Focus**: {top 1-2 priorities}
+**Focus** : {top 1-2 priorités}
 ```
 
-Offer to expand any section on request.
+Proposer d'étendre toute section sur demande.
 
 ---
 
-*Skill created: 2026-01-22*
+*Compétence créée : 2026-01-22*

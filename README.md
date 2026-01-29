@@ -1,223 +1,221 @@
-# MARVIN - Your AI Chief of Staff
+# ULY - Votre Chef de Cabinet IA
 
-MARVIN is an AI assistant that remembers your conversations, tracks your goals, and helps you stay organized. Like having a personal chief of staff who never forgets anything.
+ULY est un assistant IA qui mémorise vos conversations, suit vos objectifs et vous aide à rester organisé. Comme avoir un chef de cabinet personnel qui n'oublie jamais rien.
 
 ---
 
-## Getting Started
+## Pour Commencer
 
-### 1. Download MARVIN
+### 1. Télécharger ULY
 
-Click the green "Code" button above, then "Download ZIP". Unzip it somewhere on your computer (like your Downloads folder).
+Cliquez sur le bouton vert "Code" ci-dessus, puis "Download ZIP". Décompressez-le quelque part sur votre ordinateur (comme votre dossier Téléchargements).
 
-Or if you use git:
+Ou si vous utilisez git :
 ```
-git clone https://github.com/SterlingChin/marvin-template.git marvin-template
+git clone https://github.com/SterlingChin/marvin-template.git uly
 ```
 
-### 2. Open in Claude Code
+### 2. Ouvrir dans Claude Code
 
-Open Claude Code and navigate to the folder you downloaded:
+Ouvrez Claude Code et naviguez vers le dossier que vous avez téléchargé :
 ```
-cd marvin-template
+cd uly
 claude
 ```
 
-### 3. Ask MARVIN to Help You Set Up
+### 3. Demander à ULY de Vous Aider à Configurer
 
-Just say:
-> "Help me set up MARVIN"
+Dites simplement :
+> "Aide-moi à configurer ULY"
 
-MARVIN will walk you through everything step by step:
-- Your name and role
-- Your goals (work and personal)
-- How you want MARVIN to communicate
-- Where to create your personal workspace (default: ~/marvin)
-- Optional: Connect to Google Calendar, Gmail, Jira, etc.
+ULY vous guidera étape par étape :
+- Votre nom et rôle
+- Vos objectifs (professionnels et personnels)
+- Comment vous voulez que ULY communique
+- Où créer votre espace de travail personnel (par défaut : ~/uly)
+- Optionnel : Connecter Google Calendar, Gmail, Jira, etc.
 
-That's it! MARVIN handles the rest.
-
----
-
-## How It Works
-
-MARVIN creates a **personal workspace** separate from this template:
-
-```
-~/marvin/                    <- Your workspace (your data lives here)
-├── CLAUDE.md               # Your profile and preferences
-├── state/                  # Your goals and priorities
-├── sessions/               # Your daily session logs
-└── ...
-
-~/Downloads/marvin-template/ <- Template (keep this for updates!)
-├── .marvin/                # Setup scripts and integrations
-└── ...
-```
-
-**Your workspace** is where all your personal data lives. It's yours to customize.
-
-**The template** is where you get updates from. When new features are added, run `/sync` to pull them in.
+C'est tout ! ULY s'occupe du reste.
 
 ---
 
-## Daily Usage
+## Comment Ça Marche
 
-Once set up, navigate to your workspace and start MARVIN:
+ULY crée un **espace de travail personnel** séparé de ce modèle :
+
 ```
-cd ~/marvin
+~/uly/                       <- Votre espace (vos données vivent ici)
+├── CLAUDE.md               # Votre profil et préférences
+├── state/                  # Vos objectifs et priorités
+├── sessions/               # Vos journaux de session quotidiens
+└── ...
+
+~/Downloads/uly-template/    <- Modèle (gardez-le pour les mises à jour !)
+├── .uly/                   # Scripts de configuration et intégrations
+└── ...
+```
+
+**Votre espace de travail** est où vivent toutes vos données personnelles. Il est à vous de le personnaliser.
+
+**Le modèle** est d'où vous obtenez les mises à jour. Quand de nouvelles fonctionnalités sont ajoutées, lancez `/sync` pour les récupérer.
+
+---
+
+## Utilisation Quotidienne
+
+Une fois configuré, naviguez vers votre espace de travail et démarrez ULY :
+```
+cd ~/uly
 claude
 ```
 
-Or if you set up the shortcut during onboarding, just type:
+Ou si vous avez configuré le raccourci pendant l'intégration, tapez simplement :
 ```
-marvin
+uly
 ```
 
-### Start Your Day
+### Commencer Votre Journée
 ```
-/marvin
+/uly
 ```
-MARVIN gives you a briefing: your priorities, deadlines, and progress.
+ULY vous donne un briefing : vos priorités, échéances et progrès.
 
-### Throughout the Day
-Just talk naturally:
-- "Add a task: finish the report by Friday"
-- "What should I focus on today?"
-- "I finished the presentation"
-- "What did we talk about yesterday?"
+### Pendant la Journée
+Parlez naturellement :
+- "Ajoute une tâche : finir le rapport pour vendredi"
+- "Sur quoi devrais-je me concentrer aujourd'hui ?"
+- "J'ai terminé la présentation"
+- "De quoi avons-nous parlé hier ?"
 
-### Save Your Progress
+### Sauvegarder Votre Progrès
 ```
 /update
 ```
-Quick save without ending the session.
+Sauvegarde rapide sans terminer la session.
 
-### End Your Day
+### Terminer Votre Journée
 ```
 /end
 ```
-MARVIN saves everything for next time.
+ULY sauvegarde tout pour la prochaine fois.
 
 ---
 
-## Commands
+## Commandes
 
-| Command | What It Does |
-|---------|--------------|
-| `/marvin` | Start your day with a briefing |
-| `/end` | End session and save everything |
-| `/update` | Quick checkpoint (save progress) |
-| `/report` | Generate a weekly summary |
-| `/commit` | Review and commit git changes |
-| `/code` | Open in your IDE |
-| `/sync` | Get updates from the template |
-| `/help` | Show all commands and integrations |
-
----
-
-## Getting Updates
-
-When new features are added to MARVIN:
-
-1. Update your template folder (git pull or re-download)
-2. Open your workspace in Claude Code
-3. Run `/sync`
-
-Your personal data is never overwritten. Only new commands and skills are added.
+| Commande | Ce Qu'elle Fait |
+|----------|-----------------|
+| `/uly` | Commencer votre journée avec un briefing |
+| `/end` | Terminer la session et tout sauvegarder |
+| `/update` | Point de contrôle rapide (sauvegarder le progrès) |
+| `/report` | Générer un résumé hebdomadaire |
+| `/commit` | Réviser et commiter les changements git |
+| `/code` | Ouvrir dans votre IDE |
+| `/sync` | Obtenir les mises à jour du modèle |
+| `/help` | Afficher toutes les commandes et intégrations |
 
 ---
 
-## Migrating from an Older Version
+## Obtenir les Mises à Jour
 
-If you were using MARVIN before the workspace separation update, run the migration script to move to the new architecture without losing any data.
+Quand de nouvelles fonctionnalités sont ajoutées à ULY :
 
-### 1. Get the Latest Template
+1. Mettez à jour votre dossier modèle (git pull ou re-télécharger)
+2. Ouvrez votre espace de travail dans Claude Code
+3. Lancez `/sync`
+
+Vos données personnelles ne sont jamais écrasées. Seules les nouvelles commandes et compétences sont ajoutées.
+
+---
+
+## Migration depuis une Ancienne Version
+
+Si vous utilisiez ULY avant la mise à jour de séparation d'espace de travail, lancez le script de migration pour passer à la nouvelle architecture sans perdre de données.
+
+### 1. Obtenir le Dernier Modèle
 
 ```
-git clone https://github.com/SterlingChin/marvin-template.git marvin-template
+git clone https://github.com/SterlingChin/marvin-template.git uly
 ```
 
-Or if you already have it cloned, run `git pull` to get the latest.
+Ou si vous l'avez déjà cloné, lancez `git pull` pour obtenir la dernière version.
 
-### 2. Run the Migration Script
+### 2. Lancer le Script de Migration
 
 ```
-cd marvin-template
-./.marvin/migrate.sh
+cd uly
+./.uly/migrate.sh
 ```
 
-### 3. Follow the Prompts
+### 3. Suivre les Instructions
 
-The script will ask:
-- Where your current MARVIN installation is
-- Where you want your new workspace (default: ~/marvin)
+Le script vous demandera :
+- Où se trouve votre installation ULY actuelle
+- Où vous voulez votre nouvel espace de travail (par défaut : ~/uly)
 
-It automatically copies all your data:
-- Your profile (CLAUDE.md)
-- Goals and priorities (state/)
-- Session logs (sessions/)
-- Reports and content
-- Any custom skills you created
+Il copie automatiquement toutes vos données :
+- Votre profil (CLAUDE.md)
+- Objectifs et priorités (state/)
+- Journaux de session (sessions/)
+- Rapports et contenu
+- Toutes les compétences personnalisées que vous avez créées
 
-### 4. Verify and Clean Up
+### 4. Vérifier et Nettoyer
 
-Once you confirm everything works in your new workspace, you can delete your old MARVIN folder.
-
----
-
-## What Can MARVIN Do?
-
-- **Remember everything** - Pick up where you left off, even days later
-- **Track your goals** - Monitor progress on work and personal goals
-- **Manage tasks** - Keep a running to-do list that persists
-- **Give briefings** - Start each day knowing what matters
-- **Push back** - MARVIN is a thought partner, not a yes-man
-- **Connect to your tools** - Integrations for Google, Microsoft, Atlassian, Telegram, and more
+Une fois que vous confirmez que tout fonctionne dans votre nouvel espace de travail, vous pouvez supprimer votre ancien dossier ULY.
 
 ---
 
-## Integrations
+## Que Peut Faire ULY ?
 
-MARVIN can connect to your favorite tools:
-
-| Integration | What It Does | Setup |
-|-------------|--------------|-------|
-| [Google Workspace](.marvin/integrations/google-workspace/) | Gmail, Calendar, Drive | `/help` then follow prompts |
-| [Microsoft 365](.marvin/integrations/ms365/) | Outlook, Calendar, OneDrive, Teams | `/help` then follow prompts |
-| [Atlassian](.marvin/integrations/atlassian/) | Jira, Confluence | `/help` then follow prompts |
-| [Telegram](.marvin/integrations/telegram/) | Chat with MARVIN from your phone | Requires Python setup |
-| [Parallel Search](.marvin/integrations/parallel-search/) | Web search capabilities | `/help` then follow prompts |
-
-More integrations coming soon! Check `.marvin/integrations/` for the full list and setup instructions.
+- **Se souvenir de tout** - Reprendre où vous en étiez, même des jours plus tard
+- **Suivre vos objectifs** - Surveiller le progrès sur les objectifs professionnels et personnels
+- **Gérer les tâches** - Garder une liste de tâches persistante
+- **Faire des briefings** - Commencer chaque jour en sachant ce qui compte
+- **Pousser à réfléchir** - ULY est un partenaire de réflexion, pas un béni-oui-oui
+- **Se connecter à vos outils** - Intégrations pour Google, Microsoft, Atlassian, Telegram, et plus
 
 ---
 
-## Contributing
+## Intégrations
 
-MARVIN is open to contributions! Whether you want to add a new integration, fix a bug, or improve documentation:
+ULY peut se connecter à vos outils favoris :
 
-1. **Fork the repo** and create a branch
-2. **Follow the guidelines** in [.marvin/integrations/CLAUDE.md](.marvin/integrations/CLAUDE.md)
-3. **Submit a PR** - we review all contributions
+| Intégration | Ce Qu'elle Fait | Configuration |
+|-------------|-----------------|---------------|
+| [Google Workspace](.uly/integrations/google-workspace/) | Gmail, Calendar, Drive | `/help` puis suivre les instructions |
+| [Microsoft 365](.uly/integrations/ms365/) | Outlook, Calendar, OneDrive, Teams | `/help` puis suivre les instructions |
+| [Atlassian](.uly/integrations/atlassian/) | Jira, Confluence | `/help` puis suivre les instructions |
+| [Telegram](.uly/integrations/telegram/) | Discuter avec ULY depuis votre téléphone | Nécessite une configuration Python |
+| [Parallel Search](.uly/integrations/parallel-search/) | Capacités de recherche web | `/help` puis suivre les instructions |
 
-See the [integrations README](.marvin/integrations/README.md) for detailed contribution guidelines.
-
----
-
-## Need Help?
-
-Just ask MARVIN! Say things like:
-- "How do I add Google Calendar?"
-- "How do I create a new skill?"
-- "What commands are available?"
-
-Or type `/help` for a quick reference.
+Plus d'intégrations à venir ! Consultez `.uly/integrations/` pour la liste complète et les instructions de configuration.
 
 ---
 
-## About
+## Contribuer
 
-MARVIN is named after the Paranoid Android from The Hitchhiker's Guide to the Galaxy.
+ULY est ouvert aux contributions ! Que vous vouliez ajouter une nouvelle intégration, corriger un bug ou améliorer la documentation :
 
-Created by [Sterling Chin](https://sterlingchin.com). Because everyone deserves a chief of staff.
+1. **Forkez le repo** et créez une branche
+2. **Suivez les directives** dans [.uly/integrations/CLAUDE.md](.uly/integrations/CLAUDE.md)
+3. **Soumettez une PR** - nous révisons toutes les contributions
+
+Voir le [README des intégrations](.uly/integrations/README.md) pour les directives détaillées de contribution.
+
+---
+
+## Besoin d'Aide ?
+
+Demandez simplement à ULY ! Dites des choses comme :
+- "Comment j'ajoute Google Calendar ?"
+- "Comment je crée une nouvelle compétence ?"
+- "Quelles commandes sont disponibles ?"
+
+Ou tapez `/help` pour une référence rapide.
+
+---
+
+## À Propos
+
+Créé avec le modèle MARVIN par [Sterling Chin](https://sterlingchin.com). Parce que tout le monde mérite un chef de cabinet.

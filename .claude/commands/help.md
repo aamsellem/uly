@@ -1,88 +1,88 @@
 ---
-description: Show available commands and integrations
+description: Afficher les commandes et intégrations disponibles
 ---
 
-# /help - MARVIN Help
+# /help - Aide ULY
 
-Show the user what MARVIN can do and what integrations are available.
+Montrer à l'utilisateur ce que ULY peut faire et quelles intégrations sont disponibles.
 
 ## Instructions
 
-### 1. Show Available Commands
+### 1. Afficher les Commandes Disponibles
 
-Display this reference:
+Afficher cette référence :
 
 ```
-## Slash Commands
+## Commandes Slash
 
-| Command   | What It Does                        |
-|-----------|-------------------------------------|
-| /marvin   | Start a session with a briefing     |
-| /end      | End session and save everything     |
-| /update   | Quick checkpoint (save progress)    |
-| /report   | Generate a weekly summary of work   |
-| /commit   | Review and commit git changes       |
-| /code     | Open MARVIN in your IDE             |
-| /help     | Show this help guide                |
-| /sync     | Get updates from MARVIN template    |
+| Commande  | Ce Qu'elle Fait                          |
+|-----------|------------------------------------------|
+| /uly      | Démarrer une session avec un briefing    |
+| /end      | Terminer la session et tout sauvegarder  |
+| /update   | Point de contrôle rapide (sauvegarder)   |
+| /report   | Générer un résumé hebdomadaire du travail|
+| /commit   | Réviser et commiter les changements git  |
+| /code     | Ouvrir ULY dans votre IDE                |
+| /help     | Afficher ce guide d'aide                 |
+| /sync     | Obtenir les mises à jour du modèle ULY   |
 ```
 
-### 2. Show Current Integrations
+### 2. Afficher les Intégrations Actuelles
 
-Check what MCP servers are configured by running:
+Vérifier quels serveurs MCP sont configurés en lançant :
 ```bash
 claude mcp list
 ```
 
-Then display something like:
+Puis afficher quelque chose comme :
 
 ```
-## Your Integrations
+## Vos Intégrations
 
-These are the tools MARVIN can currently access:
+Ce sont les outils auxquels ULY peut actuellement accéder :
 
-| Integration      | What It Does                                      |
+| Intégration      | Ce Qu'elle Fait                                    |
 |------------------|---------------------------------------------------|
-| Google Workspace | Read/send email, check calendar, access Drive     |
-| Atlassian        | View Jira tickets, search Confluence              |
+| Google Workspace | Lire/envoyer des emails, vérifier le calendrier, accéder à Drive |
+| Atlassian        | Voir les tickets Jira, rechercher dans Confluence |
 
-(List only what's actually configured based on the mcp list output)
+(Lister uniquement ce qui est réellement configuré selon la sortie mcp list)
 ```
 
-If no integrations are configured, say:
+Si aucune intégration n'est configurée, dire :
 ```
-## Your Integrations
+## Vos Intégrations
 
-No integrations configured yet. I can help you set one up, or you can run the setup scripts in `.marvin/integrations/`.
-```
-
-### 3. Show Available Integrations
-
-Read `.marvin/integrations/README.md` to see the full list of available integrations, then display:
-
-```
-## Available Integrations
-
-These can be added anytime. Browse `.marvin/integrations/` for details.
-
-| Integration      | Setup Command                                   | What It Does                 |
-|------------------|-------------------------------------------------|------------------------------|
-| Google Workspace | ./.marvin/integrations/google-workspace/setup.sh | Gmail, Calendar, Drive       |
-| Atlassian        | ./.marvin/integrations/atlassian/setup.sh        | Jira, Confluence             |
-
-Want something else? Check `.marvin/integrations/REQUESTS.md` to see what's planned or request a new one!
+Aucune intégration configurée pour l'instant. Je peux vous aider à en configurer une, ou vous pouvez lancer les scripts de configuration dans `.uly/integrations/`.
 ```
 
-### 4. Offer Next Steps
+### 3. Afficher les Intégrations Disponibles
 
-End with:
+Lire `.uly/integrations/README.md` pour voir la liste complète des intégrations disponibles, puis afficher :
+
+```
+## Intégrations Disponibles
+
+Celles-ci peuvent être ajoutées à tout moment. Parcourez `.uly/integrations/` pour les détails.
+
+| Intégration      | Commande de Configuration                        | Ce Qu'elle Fait               |
+|------------------|--------------------------------------------------|-------------------------------|
+| Google Workspace | ./.uly/integrations/google-workspace/setup.sh    | Gmail, Calendar, Drive        |
+| Atlassian        | ./.uly/integrations/atlassian/setup.sh           | Jira, Confluence              |
+
+Vous voulez autre chose ? Vérifiez `.uly/integrations/REQUESTS.md` pour voir ce qui est prévu ou demander une nouvelle intégration !
+```
+
+### 4. Proposer les Prochaines Étapes
+
+Terminer avec :
 
 ```
 ---
 
-Want me to help you set up an integration, create a new skill, or learn more about what I can do?
+Voulez-vous que je vous aide à configurer une intégration, créer une nouvelle compétence, ou en apprendre plus sur ce que je peux faire ?
 
-Otherwise, hit **Esc** to get back to work.
+Sinon, appuyez sur **Esc** pour retourner au travail.
 ```
 
-Wait for the user to respond or exit.
+Attendre que l'utilisateur réponde ou quitte.

@@ -1,62 +1,62 @@
 ---
-description: Generate a weekly report of your work
+description: Générer un rapport hebdomadaire de votre travail
 ---
 
-# /report - Weekly Report
+# /report - Rapport Hebdomadaire
 
-Generate a summary of what you accomplished this week.
+Générer un résumé de ce que vous avez accompli cette semaine.
 
 ## Instructions
 
-### 1. Gather the Data
+### 1. Rassembler les Données
 
-Read the session logs from this week:
-- Run `date +%Y-%m-%d` to get today's date
-- Read session files from `sessions/` for the past 7 days
-- Also read `state/current.md` for context on priorities
-- Read `state/goals.md` to connect work to goals
+Lire les journaux de session de cette semaine :
+- Lancer `date +%Y-%m-%d` pour obtenir la date d'aujourd'hui
+- Lire les fichiers de session depuis `sessions/` pour les 7 derniers jours
+- Aussi lire `state/current.md` pour le contexte sur les priorités
+- Lire `state/goals.md` pour connecter le travail aux objectifs
 
-### 2. Compile the Report
+### 2. Compiler le Rapport
 
-Create a report with these sections:
+Créer un rapport avec ces sections :
 
 ```markdown
-# Weekly Report: {Week of DATE}
+# Rapport Hebdomadaire : {Semaine du DATE}
 
-## Highlights
-- Top 3-5 accomplishments this week
-- Keep it concise, focus on outcomes not activities
+## Points Forts
+- Top 3-5 accomplissements de cette semaine
+- Rester concis, se concentrer sur les résultats pas les activités
 
-## Work Completed
-- Organized by project or goal area
-- Include specific deliverables, decisions made, problems solved
+## Travail Terminé
+- Organisé par projet ou domaine d'objectif
+- Inclure les livrables spécifiques, décisions prises, problèmes résolus
 
-## In Progress
-- What's actively being worked on
-- Expected completion or next steps
+## En Cours
+- Ce sur quoi on travaille activement
+- Achèvement prévu ou prochaines étapes
 
-## Blockers / Needs Attention
-- Anything stuck or waiting on others
-- Decisions needed
+## Blocages / Nécessite Attention
+- Tout ce qui est bloqué ou en attente d'autres personnes
+- Décisions nécessaires
 
-## Next Week
-- Top priorities for the coming week
-- Carries forward from open threads
+## Semaine Prochaine
+- Priorités principales pour la semaine à venir
+- Report des fils ouverts
 
-## Goals Progress
-- Quick update on progress toward annual goals (from state/goals.md)
-- Note any goals that got attention this week
+## Progrès vers les Objectifs
+- Mise à jour rapide sur le progrès vers les objectifs annuels (depuis state/goals.md)
+- Noter tout objectif qui a reçu de l'attention cette semaine
 ```
 
-### 3. Save the Report
+### 3. Sauvegarder le Rapport
 
-Save to `reports/YYYY-MM-DD.md` using today's date.
+Sauvegarder dans `reports/AAAA-MM-JJ.md` en utilisant la date d'aujourd'hui.
 
-### 4. Offer Next Steps
+### 4. Proposer les Prochaines Étapes
 
-Ask: "Want me to copy this somewhere, share it, or adjust the format?"
+Demander : "Voulez-vous que je copie ceci quelque part, le partage, ou ajuste le format ?"
 
-Common follow-ups:
-- Copy to clipboard for pasting into Slack/email
-- Adjust tone (more formal for managers, casual for team)
-- Focus on specific projects or goals
+Suivis courants :
+- Copier dans le presse-papiers pour coller dans Slack/email
+- Ajuster le ton (plus formel pour les managers, décontracté pour l'équipe)
+- Se concentrer sur des projets ou objectifs spécifiques

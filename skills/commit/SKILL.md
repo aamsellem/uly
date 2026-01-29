@@ -1,130 +1,130 @@
 ---
 name: commit
 description: |
-  Review changes and create clean git commits. Use when user types /commit or asks to commit changes. Creates well-structured commits with proper messages.
+  Réviser les changements et créer des commits git propres. Utiliser quand l'utilisateur tape /commit ou demande à commiter des changements. Crée des commits bien structurés avec des messages appropriés.
 license: MIT
-compatibility: marvin
+compatibility: uly
 metadata:
-  marvin-category: work
+  uly-category: work
   user-invocable: true
   slash-command: /commit
   model: default
   proactive: false
 ---
 
-# Commit Skill
+# Compétence Commit
 
-Review changes and create clean, well-structured git commits.
+Réviser les changements et créer des commits git propres et bien structurés.
 
-## When to Use
+## Quand Utiliser
 
-- User types `/commit`
-- User asks to "commit changes" or "save to git"
-- After completing a piece of work
+- L'utilisateur tape `/commit`
+- L'utilisateur demande de "commiter les changements" ou "sauvegarder dans git"
+- Après avoir complété un travail
 
-## Process
+## Processus
 
-### Step 1: Check Current Status
+### Étape 1 : Vérifier le Statut Actuel
 ```bash
 git status --short
 git diff --stat
 ```
 
-Review what's changed:
-- New files
-- Modified files
-- Deleted files
+Réviser ce qui a changé :
+- Nouveaux fichiers
+- Fichiers modifiés
+- Fichiers supprimés
 
-### Step 2: Review Changes
+### Étape 2 : Réviser les Changements
 ```bash
 git diff
 ```
 
-Understand what changed and why. Group related changes.
+Comprendre ce qui a changé et pourquoi. Grouper les changements liés.
 
-### Step 3: Check Recent History
+### Étape 3 : Vérifier l'Historique Récent
 ```bash
 git log --oneline -5
 ```
 
-Match the repository's commit style.
+Correspondre au style de commit du dépôt.
 
-### Step 4: Create Logical Commits
+### Étape 4 : Créer des Commits Logiques
 
-Group files by type and create separate commits:
+Grouper les fichiers par type et créer des commits séparés :
 
-| Category | Files | Commit Type |
-|----------|-------|-------------|
-| Features | New functionality | `feat:` |
-| Bug fixes | Fixes | `fix:` |
+| Catégorie | Fichiers | Type de Commit |
+|-----------|----------|----------------|
+| Fonctionnalités | Nouvelles fonctionnalités | `feat:` |
+| Corrections | Corrections | `fix:` |
 | Documentation | `*.md`, docs | `docs:` |
-| Configuration | Config files | `chore:` |
-| State/Sessions | `state/`, `sessions/` | `chore:` |
+| Configuration | Fichiers de config | `chore:` |
+| État/Sessions | `state/`, `sessions/` | `chore:` |
 
-### Step 5: Stage and Commit
+### Étape 5 : Stager et Commiter
 
-For each group:
+Pour chaque groupe :
 ```bash
-git add <specific files>
+git add <fichiers spécifiques>
 git commit -m "$(cat <<'EOF'
-<type>: <short description>
+<type>: <courte description>
 
-<optional longer description>
+<description plus longue optionnelle>
 
 Co-Authored-By: Claude <noreply@anthropic.com>
 EOF
 )"
 ```
 
-### Step 6: Push (if requested)
+### Étape 6 : Push (si demandé)
 ```bash
 git push
 ```
 
-## Commit Message Guidelines
+## Directives pour les Messages de Commit
 
-**Format:**
+**Format :**
 ```
 <type>: <description>
 
-[optional body]
+[corps optionnel]
 
 Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 
-**Types:**
-- `feat:` — New feature
-- `fix:` — Bug fix
+**Types :**
+- `feat:` — Nouvelle fonctionnalité
+- `fix:` — Correction de bug
 - `docs:` — Documentation
-- `chore:` — Maintenance, config, state updates
-- `refactor:` — Code restructuring
+- `chore:` — Maintenance, config, mises à jour d'état
+- `refactor:` — Restructuration de code
 - `test:` — Tests
 
-**Good examples:**
-- `feat: add email notification system`
-- `fix: resolve login timeout issue`
-- `docs: update API documentation`
-- `chore: session log and state update`
+**Bons exemples :**
+- `feat: ajouter système de notification par email`
+- `fix: résoudre problème de timeout à la connexion`
+- `docs: mettre à jour documentation API`
+- `chore: journal de session et mise à jour d'état`
 
-**Bad examples:**
-- `update` (too vague)
-- `fixed stuff` (not descriptive)
-- `WIP` (don't commit work in progress)
+**Mauvais exemples :**
+- `update` (trop vague)
+- `correction de trucs` (pas descriptif)
+- `WIP` (ne pas commiter du travail en cours)
 
-## Output Format
+## Format de Sortie
 
 ```
-**Changes:**
-- {file 1}: {what changed}
-- {file 2}: {what changed}
+**Changements :**
+- {fichier 1}: {ce qui a changé}
+- {fichier 2}: {ce qui a changé}
 
-**Commits created:**
+**Commits créés :**
 1. `<type>: <message>`
 2. `<type>: <message>`
 
-{Pushed to origin/main | Ready to push}
+{Poussé vers origin/main | Prêt à pousser}
 ```
 
 ---
 
-*Skill created: 2026-01-22*
+*Compétence créée : 2026-01-22*

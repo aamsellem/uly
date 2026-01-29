@@ -1,20 +1,20 @@
 ---
-description: Open MARVIN in your IDE (Cursor, VS Code, etc.)
+description: Ouvrir ULY dans votre IDE (Cursor, VS Code, etc.)
 ---
 
-# /code - Open in IDE
+# /code - Ouvrir dans l'IDE
 
-Open the MARVIN directory in your preferred IDE.
+Ouvrir le répertoire ULY dans votre IDE préféré.
 
 ## Instructions
 
-### 1. Determine IDE
-Try these in order until one works:
-1. `cursor .` - Cursor (preferred if available)
+### 1. Déterminer l'IDE
+Essayer ceux-ci dans l'ordre jusqu'à ce qu'un fonctionne :
+1. `cursor .` - Cursor (préféré si disponible)
 2. `code .` - VS Code
 
-### 2. Open
-Run the command to open the current directory in the IDE.
+### 2. Ouvrir
+Lancer la commande pour ouvrir le répertoire actuel dans l'IDE.
 
-### 3. Confirm
-Let the user know which IDE was opened. If neither command works, suggest they install Cursor or VS Code, or let you know what IDE they use so you can try that command instead.
+### 3. Confirmer
+Informer l'utilisateur quel IDE a été ouvert. Si aucune commande ne fonctionne, suggérer d'installer Cursor ou VS Code, ou de me faire savoir quel IDE ils utilisent pour que je puisse essayer cette commande à la place.
