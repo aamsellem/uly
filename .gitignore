@@ -15,6 +15,10 @@ venv/
 .venv/
 *.egg-info/
 
+# Daemon files
+.daemon.pid
+daemon.log
+
 # Node (if using JS integrations)
 node_modules/
 

@@ -13,24 +13,20 @@ Lancer `date +%Y-%m-%d` pour obtenir la date d'aujourd'hui. Stocker comme AUJOUR
 
 ### 2. Vérifier le Tunnel (si auto-start activé)
 
-Si `ULY_AUTO_START_TUNNEL=true` dans `.env` :
+Lire `.env` à la racine du workspace. Si `ULY_AUTO_START_TUNNEL=true` :
 
-1. **Vérifier si le tunnel tourne** :
+1. **Lancer le script daemon** :
    ```bash
-   # Vérifier si le serveur écoute sur le port 8787
-   lsof -i :8787 -sTCP:LISTEN 2>/dev/null | grep -q LISTEN
+   ./.uly/integrations/cloudflare-tunnel/start-daemon.sh
    ```
 
-2. **Si le tunnel ne tourne pas** :
-   - Informer l'utilisateur : "Je lance le tunnel en arrière-plan..."
-   - Lancer : `./.uly/integrations/cloudflare-tunnel/run.sh &`
-   - Attendre 5 secondes que le tunnel démarre
-   - Confirmer : "✓ Tunnel démarré"
+2. **Interpréter la sortie** :
+   - `running` → Le tunnel tournait déjà. Dire : "✓ Tunnel actif"
+   - `started` → Le tunnel vient de démarrer. Dire : "✓ Tunnel démarré"
+   - `error: setup required` → Dire : "⚠ Tunnel non configuré. Lancez `./.uly/integrations/cloudflare-tunnel/setup.sh` pour l'activer."
+   - `error: *` → Autre problème. Informer l'utilisateur mais continuer la session
 
-3. **Si le tunnel tourne déjà** :
-   - Informer brièvement : "✓ Tunnel actif"
-
-Si `ULY_AUTO_START_TUNNEL=false` ou non défini → ne rien faire.
+Si `ULY_AUTO_START_TUNNEL=false` ou non défini → ne rien faire, passer à l'étape suivante.
 
 ### 3. Charger le Contexte (lire ces fichiers dans l'ordre)
 - `CLAUDE.md` - Instructions et contexte principal

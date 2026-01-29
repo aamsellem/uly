@@ -3,7 +3,8 @@
     "allow": [
       "Bash(gh repo create:*)",
       "Bash(git remote set-url:*)",
-      "Bash(gh repo edit:*)"
+      "Bash(gh repo edit:*)",
+      "Bash(chmod:*)"
     ]
   }
 }
