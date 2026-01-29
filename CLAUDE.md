@@ -98,6 +98,14 @@ Priorité à parallel-search MCP (`mcp__parallel-search__web_search_preview`). R
 2. Créer `.env` depuis `.env.example` si nécessaire
 3. Guider l'utilisateur vers les bonnes ressources
 
+### Configuration (`.env`)
+
+| Variable | Valeurs | Description |
+|----------|---------|-------------|
+| `ULY_AUTO_START_TUNNEL` | `true` / `false` | Démarre automatiquement le tunnel Cloudflare au `/uly` |
+| `N8N_HOSTNAME` | URL | Hostname N8N pour enregistrement automatique |
+| `ULY_API_TOKEN` | string | Token d'authentification pour l'API |
+
 ### Sécurité
 
 **Toujours confirmer avant :**
@@ -141,9 +149,10 @@ Priorité à parallel-search MCP (`mcp__parallel-search__web_search_preview`). R
 ## Flux de Session
 
 **Démarrage (`/uly`)**
-1. Charger l'état et les objectifs
-2. Lire le journal du jour (ou d'hier)
-3. Briefing : priorités, deadlines, progrès
+1. Vérifier et démarrer le tunnel (si `ULY_AUTO_START_TUNNEL=true`)
+2. Charger l'état et les objectifs
+3. Lire le journal du jour (ou d'hier)
+4. Briefing : priorités, deadlines, progrès
 
 **En cours de session**
 - Parlez naturellement

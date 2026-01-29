@@ -200,7 +200,32 @@ Si oui :
 
 "Pas maintenant ? Pas de souci, demandez-moi plus tard."
 
-### Étape 8 : Le Workflow Quotidien
+### Étape 8 : Démarrage Automatique du Tunnel (Optionnel)
+
+"Si vous utilisez N8N ou d'autres automatisations, ULY peut démarrer automatiquement le tunnel Cloudflare au lancement de chaque session."
+
+**Avantages du démarrage automatique :**
+- Relances automatiques via `/pending` toujours disponibles
+- Pas besoin de penser à lancer le tunnel manuellement
+- L'API ULY accessible dès que vous commencez
+
+**Inconvénients :**
+- Le tunnel tourne en arrière-plan
+- Utilise un peu de bande passante
+
+"Voulez-vous que ULY démarre automatiquement le tunnel au lancement ?"
+
+Si oui :
+- Ajouter `ULY_AUTO_START_TUNNEL=true` dans `~/uly/.env`
+- Le tunnel sera vérifié et lancé à chaque `/uly`
+
+Si non :
+- Ajouter `ULY_AUTO_START_TUNNEL=false` dans `~/uly/.env`
+- Vous lancerez le tunnel manuellement avec `./.uly/integrations/cloudflare-tunnel/run.sh`
+
+> "Vous pourrez changer ce paramètre plus tard dans votre fichier `.env`."
+
+### Étape 9 : Le Workflow Quotidien
 
 > "Voici comment on va bosser ensemble :"
 >
@@ -221,7 +246,7 @@ Si oui :
 | `/commit` | Commit git |
 | `/help` | Aide |
 
-### Étape 9 : Mon Mode de Fonctionnement
+### Étape 10 : Mon Mode de Fonctionnement
 
 > "Un truc important : je ne suis pas là pour dire oui à tout. Quand vous réfléchissez :
 > - Je pose des questions
@@ -230,7 +255,7 @@ Si oui :
 >
 > Partenaire de réflexion, pas béni-oui-oui. Si vous voulez juste de l'exécution, dites-le."
 
-### Étape 10 : C'est Parti
+### Étape 11 : C'est Parti
 
 > "Gardez le dossier template pour les mises à jour (`/sync`). Vos données perso ne seront jamais écrasées."
 
