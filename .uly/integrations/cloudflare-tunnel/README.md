@@ -68,10 +68,13 @@ Vous obtenez une URL comme : `https://votre-tunnel.trycloudflare.com`
 | Méthode | Endpoint | Description |
 |---------|----------|-------------|
 | `POST` | `/ask` | Envoyer un message à ULY |
-| `POST` | `/command/{cmd}` | Exécuter une commande (`/uly`, `/update`, `/end`, `/report`) |
+| `POST` | `/command/{cmd}` | Exécuter n'importe quelle commande slash |
+| `POST` | `/raw` | Envoyer une commande brute (message ou slash) |
 | `GET` | `/health` | Vérifier que le service fonctionne |
 
-### Exemple : Envoyer un message
+---
+
+### `/ask` — Envoyer un message
 
 ```bash
 curl -X POST https://votre-tunnel.trycloudflare.com/ask \
@@ -80,34 +83,79 @@ curl -X POST https://votre-tunnel.trycloudflare.com/ask \
   -d '{"message": "Quel est mon état actuel?"}'
 ```
 
-**Réponse :**
-```json
-{
-  "response": "Salut ! D'après ton état actuel...",
-  "duration_ms": 2340
-}
-```
+---
 
-### Exemple : Exécuter /uly (briefing)
+### `/command/{cmd}` — Exécuter une commande slash
+
+**N'importe quelle commande Claude Code :**
 
 ```bash
+# Briefing
 curl -X POST https://votre-tunnel.trycloudflare.com/command/uly \
+  -H "Authorization: Bearer VOTRE_TOKEN"
+
+# Commit avec message
+curl -X POST https://votre-tunnel.trycloudflare.com/command/commit \
+  -H "Authorization: Bearer VOTRE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"args": "-m \"feat: nouvelle fonctionnalité\""}'
+
+# Update
+curl -X POST https://votre-tunnel.trycloudflare.com/command/update \
+  -H "Authorization: Bearer VOTRE_TOKEN"
+
+# Help
+curl -X POST https://votre-tunnel.trycloudflare.com/command/help \
+  -H "Authorization: Bearer VOTRE_TOKEN"
+
+# Report
+curl -X POST https://votre-tunnel.trycloudflare.com/command/report \
   -H "Authorization: Bearer VOTRE_TOKEN"
 ```
 
-### Paramètres `/ask`
-
+**Paramètres optionnels :**
 ```json
 {
-  "message": "Ajoute une tâche : finir le rapport",
-  "timeout": 120
+  "args": "arguments supplémentaires",
+  "timeout": 180
 }
 ```
 
+---
+
+### `/raw` — Commande brute
+
+Envoie **exactement** ce que tu veux à Claude Code :
+
+```bash
+# Une commande slash
+curl -X POST https://votre-tunnel.trycloudflare.com/raw \
+  -H "Authorization: Bearer VOTRE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"message": "/commit -m \"fix: correction bug\""}'
+
+# Une question
+curl -X POST https://votre-tunnel.trycloudflare.com/raw \
+  -H "Authorization: Bearer VOTRE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Liste mes tâches en retard"}'
+
+# Une instruction
+curl -X POST https://votre-tunnel.trycloudflare.com/raw \
+  -H "Authorization: Bearer VOTRE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Crée un fichier content/idees.md avec mes dernières idées"}'
+```
+
+---
+
+### Paramètres communs
+
 | Paramètre | Type | Description |
 |-----------|------|-------------|
-| `message` | string | Le message à envoyer (requis) |
-| `timeout` | int | Timeout en secondes (défaut: 120) |
+| `message` | string | Le message/commande (requis pour `/ask` et `/raw`) |
+| `args` | string | Arguments pour `/command/{cmd}` |
+| `timeout` | int | Timeout en secondes (défaut: 120-180) |
 
 ## Configuration N8N
 

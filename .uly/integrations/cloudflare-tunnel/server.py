@@ -289,40 +289,87 @@ async def ask(
     )
 
 
-@app.post("/command/{command}")
+class CommandRequest(BaseModel):
+    """Requête pour exécuter une commande."""
+    args: Optional[str] = None
+    timeout: int = 180
+
+
+@app.post("/command/{command:path}")
 async def run_command(
     command: str,
     request: Request,
+    body: Optional[CommandRequest] = None,
     authorization: str = Header(None)
 ):
     """
-    Exécute une commande ULY spécifique.
+    Exécute n'importe quelle commande Claude Code.
 
-    Commandes disponibles:
-    - /uly : Démarrer avec briefing
-    - /update : Sauvegarde rapide
-    - /end : Terminer la session
-    - /report : Rapport hebdomadaire
+    Exemples:
+    - POST /command/uly → /uly
+    - POST /command/update → /update
+    - POST /command/commit → /commit
+    - POST /command/help → /help
+
+    Avec arguments dans le body:
+    - POST /command/ask {"args": "recherche dans mes notes"}
     """
 
     verify_token(authorization)
 
-    valid_commands = ["uly", "update", "end", "report", "help"]
+    # Construire la commande complète
+    full_command = f"/{command}"
+    if body and body.args:
+        full_command = f"{full_command} {body.args}"
 
-    if command not in valid_commands:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Commande inconnue. Commandes valides: {', '.join(valid_commands)}"
-        )
+    timeout = body.timeout if body else 180
 
-    logger.info(f"Exécution de la commande /{command}")
+    logger.info(f"Exécution: {full_command}")
 
     start_time = time.time()
-    response = await call_claude(f"/{command}", timeout=180)
+    response = await call_claude(full_command, timeout=timeout)
     duration_ms = int((time.time() - start_time) * 1000)
 
     return {
         "command": command,
+        "full_command": full_command,
+        "response": response,
+        "duration_ms": duration_ms
+    }
+
+
+@app.post("/raw")
+async def raw_command(
+    request: Request,
+    body: AskRequest,
+    authorization: str = Header(None)
+):
+    """
+    Exécute une commande brute telle quelle.
+
+    Permet d'envoyer n'importe quoi à Claude Code :
+    - Des commandes slash : "/uly", "/commit -m 'message'"
+    - Des questions : "Quel est mon état ?"
+    - Des instructions : "Crée un fichier test.md"
+    """
+
+    verify_token(authorization)
+
+    client_ip = request.client.host if request.client else "unknown"
+    if not check_rate_limit(client_ip):
+        raise HTTPException(
+            status_code=429,
+            detail="Rate limit dépassé. Maximum 100 requêtes par minute."
+        )
+
+    logger.info(f"Commande brute de {client_ip}: {body.message[:100]}...")
+
+    start_time = time.time()
+    response = await call_claude(body.message, timeout=body.timeout)
+    duration_ms = int((time.time() - start_time) * 1000)
+
+    return {
+        "input": body.message,
         "response": response,
         "duration_ms": duration_ms
     }
