@@ -48,12 +48,6 @@ if [ -z "$ULY_API_TOKEN" ]; then
     exit 1
 fi
 
-# Vérifier la clé Anthropic
-if [ -z "$ANTHROPIC_API_KEY" ]; then
-    echo -e "${YELLOW}⚠ ANTHROPIC_API_KEY non définie${NC}"
-    echo "L'API ne pourra pas appeler Claude."
-fi
-
 # Activer l'environnement virtuel
 source venv/bin/activate
 
