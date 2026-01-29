@@ -37,8 +37,15 @@ API_TOKEN = os.environ.get("ULY_API_TOKEN", "")
 SERVER_PORT = int(os.environ.get("ULY_SERVER_PORT", "8787"))
 
 def get_daily_session_id() -> str:
-    """Génère un session-id basé sur la date du jour."""
-    return f"uly-{datetime.now().strftime('%Y-%m-%d')}"
+    """Génère un UUID déterministe basé sur la date du jour.
+
+    Utilise UUID v5 (SHA-1) avec un namespace fixe.
+    Même date = même UUID, chaque jour = nouvel UUID.
+    """
+    # Namespace fixe pour ULY (UUID v4 arbitraire)
+    ULY_NAMESPACE = uuid.UUID("a1b2c3d4-e5f6-7890-abcd-ef1234567890")
+    date_str = datetime.now().strftime("%Y-%m-%d")
+    return str(uuid.uuid5(ULY_NAMESPACE, date_str))
 
 # IP Whitelist (optionnel) - séparées par des virgules
 # Ex: "192.168.1.100,10.0.0.50" ou vide pour autoriser tout
