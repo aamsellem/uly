@@ -44,8 +44,10 @@ tunnel-stop: ## Arrêter le tunnel
 	@./.uly/integrations/cloudflare-tunnel/stop-daemon.sh
 
 tunnel-status: ## Vérifier si le tunnel tourne
-	@if lsof -i :8787 -sTCP:LISTEN >/dev/null 2>&1; then \
-		echo "$(GREEN)✓ Tunnel actif$(NC) (port 8787)"; \
+	@if curl -s --max-time 2 http://localhost:8787/health >/dev/null 2>&1; then \
+		echo "$(GREEN)✓ API + Tunnel actifs$(NC)"; \
+	elif lsof -i :8787 -sTCP:LISTEN >/dev/null 2>&1; then \
+		echo "$(YELLOW)⚠ Port 8787 occupé mais API ne répond pas$(NC)"; \
 	else \
 		echo "$(YELLOW)✗ Tunnel inactif$(NC)"; \
 	fi
@@ -139,8 +141,8 @@ status: ## Afficher le statut général d'ULY
 	@echo ""
 	@echo "$(BLUE)Statut ULY$(NC)"
 	@echo ""
-	@printf "  Tunnel:        "
-	@if lsof -i :8787 -sTCP:LISTEN >/dev/null 2>&1; then \
+	@printf "  API:           "
+	@if curl -s --max-time 2 http://localhost:8787/health >/dev/null 2>&1; then \
 		echo "$(GREEN)actif$(NC)"; \
 	else \
 		echo "$(YELLOW)inactif$(NC)"; \
