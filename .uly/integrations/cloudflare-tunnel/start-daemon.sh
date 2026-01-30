@@ -130,9 +130,9 @@ echo "$TUNNEL_PID" >> "$PID_FILE"
 
 # Récupérer l'URL du tunnel
 TUNNEL_URL=""
-if [ "$USE_NAMED_TUNNEL" = "true" ] && [ -n "$TUNNEL_HOSTNAME" ]; then
-    # Tunnel nommé : utiliser l'hostname configuré
-    TUNNEL_URL="https://$TUNNEL_HOSTNAME"
+if [ "$USE_NAMED_TUNNEL" = "true" ] && [ -n "$TUNNEL_NAME" ]; then
+    # Tunnel nommé : construire l'URL depuis le nom
+    TUNNEL_URL="https://$TUNNEL_NAME.cfargotunnel.com"
     echo "Tunnel nommé: $TUNNEL_URL" >> "$LOG_FILE"
 else
     # Quick tunnel : extraire l'URL des logs
