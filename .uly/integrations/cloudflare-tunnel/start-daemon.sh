@@ -128,9 +128,14 @@ echo "Tunnel OK (PID: $TUNNEL_PID)" >> "$LOG_FILE"
 echo "$SERVER_PID" > "$PID_FILE"
 echo "$TUNNEL_PID" >> "$PID_FILE"
 
-# Attendre que l'URL soit disponible (quick tunnel)
+# Récupérer l'URL du tunnel
 TUNNEL_URL=""
-if [ "$USE_NAMED_TUNNEL" != "true" ]; then
+if [ "$USE_NAMED_TUNNEL" = "true" ] && [ -n "$TUNNEL_HOSTNAME" ]; then
+    # Tunnel nommé : utiliser l'hostname configuré
+    TUNNEL_URL="https://$TUNNEL_HOSTNAME"
+    echo "Tunnel nommé: $TUNNEL_URL" >> "$LOG_FILE"
+else
+    # Quick tunnel : extraire l'URL des logs
     for i in {1..20}; do
         TUNNEL_URL=$(grep -o 'https://[a-zA-Z0-9-]*\.trycloudflare\.com' "$LOG_FILE" 2>/dev/null | tail -1)
         if [ -n "$TUNNEL_URL" ]; then
@@ -140,21 +145,36 @@ if [ "$USE_NAMED_TUNNEL" != "true" ]; then
     done
 fi
 
-# Enregistrement N8N si configuré
-if [ -n "$N8N_HOSTNAME" ] && [ -n "$TUNNEL_URL" ]; then
+if [ -n "$TUNNEL_URL" ]; then
+    echo "URL: $TUNNEL_URL" >> "$LOG_FILE"
+else
+    echo "WARN: URL du tunnel non trouvée" >> "$LOG_FILE"
+fi
+
+# Enregistrement N8N
+if [ -z "$N8N_HOSTNAME" ]; then
+    echo "N8N: non configuré (N8N_HOSTNAME manquant)" >> "$LOG_FILE"
+elif [ -z "$TUNNEL_URL" ]; then
+    echo "N8N: impossible d'enregistrer (URL tunnel manquante)" >> "$LOG_FILE"
+else
     ULY_USER_NAME=$(git config user.name 2>/dev/null || id -F 2>/dev/null || echo "$USER")
     SESSION_ID="uly-$(date +%Y-%m-%d)"
 
-    curl -s -X POST "https://${N8N_HOSTNAME}/webhook/uly-register" \
+    echo "N8N: enregistrement vers $N8N_HOSTNAME..." >> "$LOG_FILE"
+
+    REGISTER_RESULT=$(curl -s -w "\nHTTP_CODE:%{http_code}" -X POST "https://${N8N_HOSTNAME}/webhook/uly-register" \
         -H "Content-Type: application/json" \
         -d "{\"hostname\": \"${TUNNEL_URL}\", \"name\": \"${ULY_USER_NAME}\", \"token\": \"${ULY_API_TOKEN}\", \"session_id\": \"${SESSION_ID}\"}" \
-        >> "$LOG_FILE" 2>&1
+        2>&1)
 
-    echo "Enregistré auprès de N8N" >> "$LOG_FILE"
-fi
+    HTTP_CODE=$(echo "$REGISTER_RESULT" | grep "HTTP_CODE:" | cut -d: -f2)
 
-if [ -n "$TUNNEL_URL" ]; then
-    echo "URL: $TUNNEL_URL" >> "$LOG_FILE"
+    if [ "$HTTP_CODE" = "200" ]; then
+        echo "N8N: enregistré avec succès" >> "$LOG_FILE"
+    else
+        echo "N8N: échec (HTTP $HTTP_CODE)" >> "$LOG_FILE"
+        echo "$REGISTER_RESULT" >> "$LOG_FILE"
+    fi
 fi
 
 echo "started"
