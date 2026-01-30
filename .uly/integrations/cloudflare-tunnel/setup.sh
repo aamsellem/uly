@@ -255,6 +255,55 @@ else
 fi
 
 # ========================================
+# ETAPE 3.5: Configuration N8N (optionnel)
+# ========================================
+
+echo ""
+echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo ""
+echo -e "${CYAN}Integration N8N (Optionnel)${NC}"
+echo ""
+echo "  Si vous utilisez N8N pour les automatisations, ULY peut"
+echo "  s'enregistrer automatiquement aupres de votre instance N8N"
+echo "  a chaque demarrage du tunnel."
+echo ""
+echo "Voulez-vous configurer l'integration N8N ?"
+echo ""
+echo -e "  ${BOLD}1)${NC} Non, pas maintenant"
+echo -e "  ${BOLD}2)${NC} Oui, configurer N8N"
+echo ""
+echo -e "${YELLOW}Votre choix [1]:${NC} "
+read -r N8N_CHOICE
+N8N_CHOICE=${N8N_CHOICE:-1}
+
+N8N_HOSTNAME=""
+
+if [[ "$N8N_CHOICE" == "2" ]]; then
+    echo ""
+    echo -e "${CYAN}Hostname de votre instance N8N :${NC}"
+    echo ""
+    echo "  Entrez le hostname sans https:// ni slash final"
+    echo ""
+    echo "  Exemples :"
+    echo "    - n8n.mondomaine.com"
+    echo "    - mon-n8n.app.n8n.cloud"
+    echo "    - 192.168.1.100:5678"
+    echo ""
+    echo -e "${YELLOW}Hostname N8N :${NC} "
+    read -r N8N_HOSTNAME
+
+    if [[ -n "$N8N_HOSTNAME" ]]; then
+        # Nettoyer l'input (enlever https:// et slash final)
+        N8N_HOSTNAME=$(echo "$N8N_HOSTNAME" | sed 's|^https://||' | sed 's|^http://||' | sed 's|/$||')
+        echo -e "${GREEN}✓ N8N configure : $N8N_HOSTNAME${NC}"
+        echo ""
+        echo -e "${DIM}ULY s'enregistrera sur https://$N8N_HOSTNAME/webhook/uly-register${NC}"
+    else
+        echo -e "${YELLOW}! Hostname vide, integration N8N desactivee${NC}"
+    fi
+fi
+
+# ========================================
 # Resume avant installation
 # ========================================
 
@@ -282,6 +331,13 @@ if [[ -n "$IP_WHITELIST" ]]; then
 else
     echo -e "  IP Whitelist     : ${YELLOW}Desactivee${NC}"
     echo -e "                     ${DIM}Toutes les IPs autorisees (avec token)${NC}"
+fi
+echo ""
+if [[ -n "$N8N_HOSTNAME" ]]; then
+    echo -e "  N8N              : ${GREEN}$N8N_HOSTNAME${NC}"
+    echo -e "                     ${DIM}Enregistrement automatique active${NC}"
+else
+    echo -e "  N8N              : ${YELLOW}Non configure${NC}"
 fi
 echo ""
 echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
@@ -502,7 +558,7 @@ ULY_IP_WHITELIST=$IP_WHITELIST
 
 # Hostname N8N pour l'enregistrement automatique (optionnel)
 # Ex: n8n.mondomaine.com
-N8N_HOSTNAME=
+N8N_HOSTNAME=$N8N_HOSTNAME
 EOF
 
 echo -e "${GREEN}✓${NC} Configuration sauvegardee dans .env"
