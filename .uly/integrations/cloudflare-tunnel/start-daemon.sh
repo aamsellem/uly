@@ -29,6 +29,43 @@ processes_running() {
     return 1
 }
 
+# Fonction pour récupérer l'URL du tunnel depuis les logs
+get_tunnel_url() {
+    if [ "$USE_NAMED_TUNNEL" = "true" ] && [ -n "$TUNNEL_NAME" ]; then
+        echo "https://$TUNNEL_NAME.cfargotunnel.com"
+    else
+        grep -o 'https://[a-zA-Z0-9-]*\.trycloudflare\.com' "$LOG_FILE" 2>/dev/null | tail -1
+    fi
+}
+
+# Fonction pour enregistrer auprès de N8N
+register_n8n() {
+    local TUNNEL_URL="$1"
+    if [ -z "$N8N_HOSTNAME" ]; then
+        return 0
+    fi
+    if [ -z "$TUNNEL_URL" ]; then
+        echo "N8N: URL tunnel manquante" >> "$LOG_FILE"
+        return 1
+    fi
+
+    ULY_USER_NAME=$(git config user.name 2>/dev/null || id -F 2>/dev/null || echo "$USER")
+    SESSION_ID="uly-$(date +%Y-%m-%d)"
+
+    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "https://${N8N_HOSTNAME}/webhook/uly-register" \
+        -H "Content-Type: application/json" \
+        -d "{\"hostname\": \"${TUNNEL_URL}\", \"name\": \"${ULY_USER_NAME}\", \"token\": \"${ULY_API_TOKEN}\", \"session_id\": \"${SESSION_ID}\"}" \
+        2>/dev/null)
+
+    if [ "$HTTP_CODE" = "200" ]; then
+        echo "N8N: enregistré ($TUNNEL_URL)" >> "$LOG_FILE"
+        return 0
+    else
+        echo "N8N: échec (HTTP $HTTP_CODE)" >> "$LOG_FILE"
+        return 1
+    fi
+}
+
 # Fonction pour tout arrêter proprement
 stop_all() {
     if [ -f "$PID_FILE" ]; then
@@ -45,6 +82,11 @@ stop_all() {
 
 # Vérifier si tout tourne correctement
 if processes_running && api_is_healthy; then
+    # Toujours enregistrer auprès de N8N (l'URL peut avoir changé)
+    TUNNEL_URL=$(get_tunnel_url)
+    if [ -n "$N8N_HOSTNAME" ] && [ -n "$TUNNEL_URL" ]; then
+        register_n8n "$TUNNEL_URL"
+    fi
     echo "running"
     exit 0
 fi
@@ -128,53 +170,23 @@ echo "Tunnel OK (PID: $TUNNEL_PID)" >> "$LOG_FILE"
 echo "$SERVER_PID" > "$PID_FILE"
 echo "$TUNNEL_PID" >> "$PID_FILE"
 
-# Récupérer l'URL du tunnel
+# Attendre que l'URL soit disponible (quick tunnel)
 TUNNEL_URL=""
-if [ "$USE_NAMED_TUNNEL" = "true" ] && [ -n "$TUNNEL_NAME" ]; then
-    # Tunnel nommé : construire l'URL depuis le nom
-    TUNNEL_URL="https://$TUNNEL_NAME.cfargotunnel.com"
-    echo "Tunnel nommé: $TUNNEL_URL" >> "$LOG_FILE"
-else
-    # Quick tunnel : extraire l'URL des logs
-    for i in {1..20}; do
-        TUNNEL_URL=$(grep -o 'https://[a-zA-Z0-9-]*\.trycloudflare\.com' "$LOG_FILE" 2>/dev/null | tail -1)
-        if [ -n "$TUNNEL_URL" ]; then
-            break
-        fi
-        sleep 1
-    done
+for i in {1..20}; do
+    TUNNEL_URL=$(get_tunnel_url)
+    if [ -n "$TUNNEL_URL" ]; then
+        break
+    fi
+    sleep 1
+done
+
+# Enregistrement N8N si configuré
+if [ -n "$N8N_HOSTNAME" ]; then
+    register_n8n "$TUNNEL_URL"
 fi
 
 if [ -n "$TUNNEL_URL" ]; then
     echo "URL: $TUNNEL_URL" >> "$LOG_FILE"
-else
-    echo "WARN: URL du tunnel non trouvée" >> "$LOG_FILE"
-fi
-
-# Enregistrement N8N
-if [ -z "$N8N_HOSTNAME" ]; then
-    echo "N8N: non configuré (N8N_HOSTNAME manquant)" >> "$LOG_FILE"
-elif [ -z "$TUNNEL_URL" ]; then
-    echo "N8N: impossible d'enregistrer (URL tunnel manquante)" >> "$LOG_FILE"
-else
-    ULY_USER_NAME=$(git config user.name 2>/dev/null || id -F 2>/dev/null || echo "$USER")
-    SESSION_ID="uly-$(date +%Y-%m-%d)"
-
-    echo "N8N: enregistrement vers $N8N_HOSTNAME..." >> "$LOG_FILE"
-
-    REGISTER_RESULT=$(curl -s -w "\nHTTP_CODE:%{http_code}" -X POST "https://${N8N_HOSTNAME}/webhook/uly-register" \
-        -H "Content-Type: application/json" \
-        -d "{\"hostname\": \"${TUNNEL_URL}\", \"name\": \"${ULY_USER_NAME}\", \"token\": \"${ULY_API_TOKEN}\", \"session_id\": \"${SESSION_ID}\"}" \
-        2>&1)
-
-    HTTP_CODE=$(echo "$REGISTER_RESULT" | grep "HTTP_CODE:" | cut -d: -f2)
-
-    if [ "$HTTP_CODE" = "200" ]; then
-        echo "N8N: enregistré avec succès" >> "$LOG_FILE"
-    else
-        echo "N8N: échec (HTTP $HTTP_CODE)" >> "$LOG_FILE"
-        echo "$REGISTER_RESULT" >> "$LOG_FILE"
-    fi
 fi
 
 echo "started"
