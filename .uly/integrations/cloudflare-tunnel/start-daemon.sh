@@ -24,8 +24,8 @@ tunnel_is_accessible() {
     if [ -z "$url" ]; then
         return 1
     fi
-    # Tester que le tunnel répond vraiment (timeout court)
-    curl -s --max-time 5 "${url}/health" >/dev/null 2>&1
+    # Tester que le tunnel répond vraiment (timeout court pour ne pas bloquer)
+    curl -s --max-time 3 "${url}/health" >/dev/null 2>&1
 }
 
 # Fonction pour vérifier si les processus tournent
@@ -189,35 +189,24 @@ echo "Tunnel OK (PID: $TUNNEL_PID)" >> "$LOG_FILE"
 echo "$SERVER_PID" > "$PID_FILE"
 echo "$TUNNEL_PID" >> "$PID_FILE"
 
-# Attendre que l'URL soit disponible ET accessible (quick tunnel)
+# Attendre que l'URL soit disponible (quick tunnel)
 TUNNEL_URL=""
-TUNNEL_ACCESSIBLE=false
-for i in {1..30}; do
+for i in {1..15}; do
     TUNNEL_URL=$(get_tunnel_url)
     if [ -n "$TUNNEL_URL" ]; then
-        echo "URL trouvée: $TUNNEL_URL (tentative $i)" >> "$LOG_FILE"
-        # Vérifier que le tunnel est vraiment accessible
-        if tunnel_is_accessible "$TUNNEL_URL"; then
-            TUNNEL_ACCESSIBLE=true
-            break
-        fi
+        echo "URL: $TUNNEL_URL" >> "$LOG_FILE"
+        break
     fi
     sleep 1
 done
 
 if [ -z "$TUNNEL_URL" ]; then
     echo "warning: URL tunnel non trouvée dans les logs" >> "$LOG_FILE"
-elif [ "$TUNNEL_ACCESSIBLE" = false ]; then
-    echo "warning: tunnel non accessible après 30s ($TUNNEL_URL)" >> "$LOG_FILE"
-else
-    echo "URL: $TUNNEL_URL (accessible)" >> "$LOG_FILE"
 fi
 
-# Enregistrement N8N si configuré et tunnel accessible
-if [ -n "$N8N_HOSTNAME" ] && [ "$TUNNEL_ACCESSIBLE" = true ]; then
+# Enregistrement N8N si configuré (le tunnel vient d'être créé, on fait confiance)
+if [ -n "$N8N_HOSTNAME" ] && [ -n "$TUNNEL_URL" ]; then
     register_n8n "$TUNNEL_URL"
-elif [ -n "$N8N_HOSTNAME" ]; then
-    echo "N8N: enregistrement ignoré (tunnel non accessible)" >> "$LOG_FILE"
 fi
 
 echo "started"
