@@ -5,16 +5,27 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PID_FILE="$SCRIPT_DIR/.daemon.pid"
 LOG_FILE="$SCRIPT_DIR/daemon.log"
-PORT="${SERVER_PORT:-8787}"
 
-# Charger la configuration
+# Charger la configuration (avant de définir PORT pour permettre override)
 if [ -f "$SCRIPT_DIR/.env" ]; then
     export $(grep -v '^#' "$SCRIPT_DIR/.env" | xargs)
 fi
 
-# Fonction pour vérifier si l'API répond
+PORT="${SERVER_PORT:-8787}"
+
+# Fonction pour vérifier si l'API locale répond
 api_is_healthy() {
     curl -s --max-time 2 "http://localhost:$PORT/health" >/dev/null 2>&1
+}
+
+# Fonction pour vérifier si le tunnel est accessible depuis l'extérieur
+tunnel_is_accessible() {
+    local url="$1"
+    if [ -z "$url" ]; then
+        return 1
+    fi
+    # Tester que le tunnel répond vraiment (timeout court)
+    curl -s --max-time 5 "${url}/health" >/dev/null 2>&1
 }
 
 # Fonction pour vérifier si les processus tournent
@@ -49,16 +60,17 @@ register_n8n() {
         return 1
     fi
 
-    ULY_USER_NAME=$(git config user.name 2>/dev/null || id -F 2>/dev/null || echo "$USER")
+    # Utiliser ULY_USER_NAME du .env si défini, sinon auto-détecter
+    local USER_NAME="${ULY_USER_NAME:-$(git config user.name 2>/dev/null || id -F 2>/dev/null || echo "$USER")}"
     SESSION_ID="uly-$(date +%Y-%m-%d)"
 
     HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "https://${N8N_HOSTNAME}/webhook/uly-register" \
         -H "Content-Type: application/json" \
-        -d "{\"hostname\": \"${TUNNEL_URL}\", \"name\": \"${ULY_USER_NAME}\", \"token\": \"${ULY_API_TOKEN}\", \"session_id\": \"${SESSION_ID}\"}" \
+        -d "{\"hostname\": \"${TUNNEL_URL}\", \"name\": \"${USER_NAME}\", \"token\": \"${ULY_API_TOKEN}\", \"session_id\": \"${SESSION_ID}\"}" \
         2>/dev/null)
 
     if [ "$HTTP_CODE" = "200" ]; then
-        echo "N8N: enregistré ($TUNNEL_URL)" >> "$LOG_FILE"
+        echo "N8N: enregistré ($TUNNEL_URL) pour $USER_NAME" >> "$LOG_FILE"
         return 0
     else
         echo "N8N: échec (HTTP $HTTP_CODE)" >> "$LOG_FILE"
@@ -82,16 +94,23 @@ stop_all() {
 
 # Vérifier si tout tourne correctement
 if processes_running && api_is_healthy; then
-    # Toujours enregistrer auprès de N8N (l'URL peut avoir changé)
     TUNNEL_URL=$(get_tunnel_url)
-    if [ -n "$N8N_HOSTNAME" ] && [ -n "$TUNNEL_URL" ]; then
-        register_n8n "$TUNNEL_URL"
+
+    # Vérifier que le tunnel est réellement accessible (pas juste que le processus tourne)
+    if [ -n "$TUNNEL_URL" ] && tunnel_is_accessible "$TUNNEL_URL"; then
+        # Tout fonctionne, enregistrer auprès de N8N
+        if [ -n "$N8N_HOSTNAME" ]; then
+            register_n8n "$TUNNEL_URL"
+        fi
+        echo "running"
+        exit 0
+    else
+        # Le tunnel n'est plus accessible, forcer un redémarrage
+        echo "$(date): Tunnel inaccessible ($TUNNEL_URL), redémarrage..." >> "$LOG_FILE"
     fi
-    echo "running"
-    exit 0
 fi
 
-# Si partiellement up, tout arrêter et relancer
+# Arrêter tout et relancer (soit partiellement up, soit tunnel mort)
 stop_all
 sleep 1
 
@@ -170,23 +189,35 @@ echo "Tunnel OK (PID: $TUNNEL_PID)" >> "$LOG_FILE"
 echo "$SERVER_PID" > "$PID_FILE"
 echo "$TUNNEL_PID" >> "$PID_FILE"
 
-# Attendre que l'URL soit disponible (quick tunnel)
+# Attendre que l'URL soit disponible ET accessible (quick tunnel)
 TUNNEL_URL=""
-for i in {1..20}; do
+TUNNEL_ACCESSIBLE=false
+for i in {1..30}; do
     TUNNEL_URL=$(get_tunnel_url)
     if [ -n "$TUNNEL_URL" ]; then
-        break
+        echo "URL trouvée: $TUNNEL_URL (tentative $i)" >> "$LOG_FILE"
+        # Vérifier que le tunnel est vraiment accessible
+        if tunnel_is_accessible "$TUNNEL_URL"; then
+            TUNNEL_ACCESSIBLE=true
+            break
+        fi
     fi
     sleep 1
 done
 
-# Enregistrement N8N si configuré
-if [ -n "$N8N_HOSTNAME" ]; then
-    register_n8n "$TUNNEL_URL"
+if [ -z "$TUNNEL_URL" ]; then
+    echo "warning: URL tunnel non trouvée dans les logs" >> "$LOG_FILE"
+elif [ "$TUNNEL_ACCESSIBLE" = false ]; then
+    echo "warning: tunnel non accessible après 30s ($TUNNEL_URL)" >> "$LOG_FILE"
+else
+    echo "URL: $TUNNEL_URL (accessible)" >> "$LOG_FILE"
 fi
 
-if [ -n "$TUNNEL_URL" ]; then
-    echo "URL: $TUNNEL_URL" >> "$LOG_FILE"
+# Enregistrement N8N si configuré et tunnel accessible
+if [ -n "$N8N_HOSTNAME" ] && [ "$TUNNEL_ACCESSIBLE" = true ]; then
+    register_n8n "$TUNNEL_URL"
+elif [ -n "$N8N_HOSTNAME" ]; then
+    echo "N8N: enregistrement ignoré (tunnel non accessible)" >> "$LOG_FILE"
 fi
 
 echo "started"
