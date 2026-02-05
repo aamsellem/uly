@@ -98,10 +98,7 @@ if processes_running && api_is_healthy; then
 
     # Vérifier que le tunnel est réellement accessible (pas juste que le processus tourne)
     if [ -n "$TUNNEL_URL" ] && tunnel_is_accessible "$TUNNEL_URL"; then
-        # Tout fonctionne, enregistrer auprès de N8N
-        if [ -n "$N8N_HOSTNAME" ]; then
-            register_n8n "$TUNNEL_URL"
-        fi
+        # Tout fonctionne, pas besoin de ré-enregistrer (déjà fait au démarrage)
         echo "running"
         exit 0
     else
